@@ -8,16 +8,19 @@ class Player(QWidget):
         self.setGeometry(x, y, width, height)
         self.image = QPixmap(image_path)
 
-        self.vx = 0  # Горизонтальная скорость
-        self.vy = 0  # Вертикальная скорость
-        self.gravity = 1  # Сила гравитации
-        self.jump_strength = -15  # Сила прыжка
+        self.vx = 0
+        self.vy = 0
+        self.gravity = 1
+        self.jump_strength = -15
         self.on_ground = False
+        self.platforms = []
 
-        # Таймер обновления позиции
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_position)
         self.timer.start(16)  # ~60 FPS
+
+    def set_platforms(self, platforms):
+        self.platforms = platforms
 
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -41,18 +44,29 @@ class Player(QWidget):
             self.on_ground = False
 
     def update_position(self):
-        # Гравитация
         self.vy += self.gravity
 
-        # Движение
         new_x = self.x() + self.vx
         new_y = self.y() + self.vy
-
-        # Обновляем позицию
         self.move(new_x, new_y)
 
-        # Границы окна (можно убрать или изменить)
+        self.on_ground = False
+
+        # Проверка столкновений с платформами
+        for platform in self.platforms:
+            if self.geometry().intersects(platform.geometry()):
+                if self.vy > 0:  # Падение вниз
+                    self.move(self.x(), platform.y() - self.height())
+                    self.vy = 0
+                    self.on_ground = True
+
+        # Ограничения по окну
         if self.y() > self.parent().height():
             self.move(self.x(), self.parent().height() - self.height())
             self.vy = 0
             self.on_ground = True
+
+        if self.x() < 0:
+            self.move(0, self.y())
+        elif self.x() + self.width() > self.parent().width():
+            self.move(self.parent().width() - self.width(), self.y())

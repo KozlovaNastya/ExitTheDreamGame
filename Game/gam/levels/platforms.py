@@ -11,14 +11,9 @@ class Platform(QWidget):
     def paintEvent(self, event):
         painter = QPainter(self)
         if self.image and not self.image.isNull():
-            # Рисуем с сохранением пропорций
             scaled_pixmap = self.image.scaled(self.size(), Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
-            # Центрируем картинку
             x = (self.width() - scaled_pixmap.width()) // 2
             y = (self.height() - scaled_pixmap.height()) // 2
             painter.drawPixmap(x, y, scaled_pixmap)
         else:
             painter.fillRect(self.rect(), Qt.GlobalColor.darkGray)
-
-    def get_rect(self):
-        return self.geometry()
