@@ -1,0 +1,44 @@
+[33mcommit b758f82052ab36670c1eb875debc429fb9ea631f[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mnastya[m[33m)[m
+Merge: a7b6382 d41813a
+Author: KozlovaNastya <nastya.kozlic.196@gmail.com>
+Date:   Mon Jul 7 17:52:38 2025 +0300
+
+    Merge branch 'main' of github.com:KozlovaNastya/GravityGame into nastya
+    
+    additing backgrounds
+
+[33mcommit a7b6382001df3578542ca58caabed7ba2394e4e4[m
+Author: KozlovaNastya <nastya.kozlic.196@gmail.com>
+Date:   Mon Jul 7 17:26:33 2025 +0300
+
+    base for windows
+
+[33mcommit d41813af287b3f09cad359d0b7b1825cbf789ef4[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m
+Author: Anastasiya Kazlova <nastya.kozlic.196@gmail.com>
+Date:   Mon Jul 7 16:32:50 2025 +0300
+
+    rename backgrounds
+
+[33mcommit 8b2cc4f8e3a3a483e651afdf6a47c0a6f8d01b12[m
+Author: zhulegoalina <zhulegoalina@yandex.by>
+Date:   Mon Jul 7 15:45:50 2025 +0300
+
+    Add files via upload
+
+[33mcommit de04402c46172e91a8156236f40751911033535a[m
+Author: KozlovaNastya <nastya.kozlic.196@gmail.com>
+Date:   Mon Jul 7 13:19:16 2025 +0300
+
+    gitignore
+
+[33mcommit 7cbb138e3c65672b3a307ccb0971afa15579fc5f[m
+Author: Anastasiya Kazlova <nastya.kozlic.196@gmail.com>
+Date:   Mon Jul 7 12:09:28 2025 +0300
+
+    Create main.py
+
+[33mcommit aa258e7091da00e2c4bae03f644c01d420133c07[m
+Author: Anastasiya Kazlova <nastya.kozlic.196@gmail.com>
+Date:   Mon Jul 7 12:08:10 2025 +0300
+
+    Initial commit
