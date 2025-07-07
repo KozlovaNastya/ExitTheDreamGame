@@ -1,12 +1,18 @@
 from PyQt6.QtWidgets import QWidget
 from PyQt6.QtGui import QPainter, QPixmap
 from PyQt6.QtCore import Qt
+from gam.constants import BASE_DIR
+import os
 
 class Platform(QWidget):
     def __init__(self, x, y, width, height, image_path=None, parent=None):
         super().__init__(parent)
         self.setGeometry(x, y, width, height)
-        self.image = QPixmap(image_path) if image_path else None
+        if image_path:      
+            full_path = os.path.join(BASE_DIR, image_path)
+            self.image = QPixmap(full_path)
+        else:
+            self.image = None
 
     def paintEvent(self, event):
         painter = QPainter(self)

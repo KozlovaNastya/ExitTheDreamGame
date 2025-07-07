@@ -1,12 +1,16 @@
 from PyQt6.QtWidgets import QWidget
 from PyQt6.QtGui import QPainter, QPixmap
 from PyQt6.QtCore import Qt, QTimer
+from gam.constants import BASE_DIR
+import os
 
 class Player(QWidget):
     def __init__(self, x, y, width, height, image_path, parent=None):
         super().__init__(parent)
         self.setGeometry(x, y, width, height)
-        self.image = QPixmap(image_path)
+
+        full_path = os.path.join(BASE_DIR, image_path)
+        self.image = QPixmap(full_path)
 
         self.vx = 0
         self.vy = 0
