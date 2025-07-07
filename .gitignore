@@ -1,0 +1,21 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.sdf
+*.cache
+*.log
+solution/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Сборка
+bin/
+obj/
+
+# Файлы решений (если не нужны)
+*.sln
