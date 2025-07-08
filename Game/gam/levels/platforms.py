@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import QWidget
 from PyQt6.QtGui import QPainter, QPixmap
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QTimer
 from gam.constants import BASE_DIR
 import os
 
@@ -21,5 +21,43 @@ class Platform(QWidget):
             x = (self.width() - scaled_pixmap.width()) // 2
             y = (self.height() - scaled_pixmap.height()) // 2
             painter.drawPixmap(x, y, scaled_pixmap)
+        else:
+            painter.fillRect(self.rect(), Qt.GlobalColor.darkGray)
+
+class MovingPlatform(QWidget):
+    def __init__(self, x, y, width, height, image_path=None, speed=2, move_range=(0, 100), parent=None):
+        super().__init__(parent)
+        self.setGeometry(x, y, width, height)
+
+        if image_path:
+            full_path = os.path.join(BASE_DIR, image_path)
+            self.image = QPixmap(full_path)
+        else:
+            self.image = None
+
+        self.speed = speed  # скорость движения в пикселях за кадр
+        self.move_range = move_range  # кортеж (min_x, max_x)
+        self.direction = 1  # 1 — движемся вправо, -1 — влево
+
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.move_platform)
+        self.timer.start(16)  # ~60 FPS
+
+    def move_platform(self):
+        new_x = self.x() + self.speed * self.direction
+        # Проверяем границы
+        if new_x < self.move_range[0]:
+            new_x = self.move_range[0]
+            self.direction = 1
+        elif new_x + self.width() > self.move_range[1]:
+            new_x = self.move_range[1] - self.width()
+            self.direction = -1
+
+        self.move(new_x, self.y())
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        if self.image and not self.image.isNull():
+            painter.drawPixmap(self.rect(), self.image)
         else:
             painter.fillRect(self.rect(), Qt.GlobalColor.darkGray)
