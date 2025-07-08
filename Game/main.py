@@ -1,12 +1,12 @@
 import sys
 from PyQt6.QtWidgets import QApplication, QMainWindow
-from gam.levels.levels import LevelOne, LevelTwo, LevelThree, LevelFour, LevelFive  # импорт уровней
+from gam.levels.levels import LevelOne, LevelTwo, LevelThree, LevelFour, LevelFive
 
 class Game(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Gravity")
-        self.levels = [LevelFour, LevelFive]  # Список уровней
+        self.levels = [LevelFour, LevelFive]
         self.current_level_index = 0
         self.load_level(self.current_level_index)
 
