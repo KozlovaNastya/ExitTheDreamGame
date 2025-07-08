@@ -3,6 +3,7 @@ from PyQt6.QtGui import QPainter, QPixmap
 from PyQt6.QtCore import Qt, QTimer, QRect
 import os
 from gam.constants import BASE_DIR
+from gam.levels.spikes import Spikes
 
 class Player(QWidget):
     def __init__(self, x, y, width, height, image_path, parent=None):
@@ -102,6 +103,11 @@ class Player(QWidget):
             )
         return False
 
+    def deleteLater(self):
+        if self.timer and self.timer.isActive():
+            self.timer.stop()
+        super().deleteLater()
+
     def update_position(self):
         # 1) Гравитация + интегрирование скоростей
         self.vx += self.gravity_x * self.gravity
@@ -110,6 +116,14 @@ class Player(QWidget):
         # 2) Предсказание новых координат
         new_x = self.x() + self.vx
         new_y = self.y() + self.vy
+
+        player_rect = QRect(new_x, new_y, self.width(), self.height())
+        for platform in self.platforms:
+            if isinstance(platform, Spikes) and player_rect.intersects(platform.geometry()):
+                # Проверяем, что уровень и его родитель существуют
+                if hasattr(self, 'level') and self.level and hasattr(self.level, 'parent') and self.level.parent():
+                    self.level.parent().load_level(self.level.parent().current_level_index)
+                return
 
         # 3) Проверка столкновений по X
         if self.gravity_x == 0:  # блокировка по X только для вертикальной гравитации

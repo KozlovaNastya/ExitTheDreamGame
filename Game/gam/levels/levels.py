@@ -1,5 +1,6 @@
 from gam.levels.base_level import BaseLevel
 from gam.levels.platforms import MovingPlatform
+from gam.levels.spikes import Spikes
 
 class LevelOne(BaseLevel):
     def __init__(self, parent=None):
@@ -7,7 +8,6 @@ class LevelOne(BaseLevel):
             background_path="assets/background/level1.png",
             platforms_data=[
                 (10, 540, 150, 60, "assets/for game/platform.png"),
-                (10, 200, 150, 60, "assets/for game/platform.png"),
                 (140, 450, 150, 60, "assets/for game/platform.png"),
                 (260, 370, 150, 60, "assets/for game/platform.png"),
                 (360, 280, 100, 60, "assets/for game/platform.png"),
@@ -28,19 +28,35 @@ class LevelTwo(BaseLevel):
                 (10, 500, 200, 80, "assets/for game/platform.png"),
                 (190, 500, 200, 80, "assets/for game/platform.png"),
                 (150, 450, 100, 40, "assets/for game/platform.png"),
-                (320, 0, 200, 80, "assets/for game/platform.png", 180),
+                (320, 0, 230, 80, "assets/for game/platform.png", 180),
                 (520, 0, 200, 80, "assets/for game/platform.png", 180),
                 (380, 200, 150, 60, "assets/for game/platform.png", 90),
                 (380, 340, 150, 60, "assets/for game/platform.png", 90),
-                (580, 100, 150, 60, "assets/for game/platform.png", 270),
-                (580, 240, 150, 60, "assets/for game/platform.png", 270),
-                (500, 500, 150, 60, "assets/for game/platform.png"),
-                (650, 500, 150, 60, "assets/for game/platform.png"),
-            ],
+                (580, 80, 150, 60, "assets/for game/platform.png", 270),
+                (580, 220, 150, 60, "assets/for game/platform.png", 270),
+                (500, 500, 190, 60, "assets/for game/platform.png"),
+                (650, 500, 160, 60, "assets/for game/platform.png"),
+            ], 
             player_start=(20, 400, 50, 50),
             finish_line_x=750,
             parent=parent
         )
+        if not hasattr(self, 'platforms'):
+            self.platforms = []
+        
+        spikes_data = [
+            (115, 465, 50, 40, "assets/for game/spikes3.png"),
+            (230, 465, 50, 40, "assets/for game/spikes3.png"),
+            (740, 465, 50, 40, "assets/for game/spikes3.png"),
+        ]
+        
+        for x, y, width, height, image_path in spikes_data:
+            spikes = Spikes(x, y, width, height, image_path, parent=self)
+            spikes.show()
+            self.platforms.append(spikes)
+        
+        self.player.set_platforms(self.platforms)
+       
 
 class LevelThree(BaseLevel):
     def __init__(self, parent=None):

@@ -6,7 +6,7 @@ class Game(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Gravity")
-        self.levels = [LevelOne, LevelTwo, LevelThree, LevelFour, LevelFive]
+        self.levels = [LevelTwo, LevelThree, LevelFour, LevelFive]
         self.current_level_index = 0
         self.load_level(self.current_level_index)
 
@@ -31,6 +31,10 @@ class Game(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    game = Game()
-    game.show()
-    sys.exit(app.exec())
+    try:
+        game = Game()
+        game.show()
+        sys.exit(app.exec())
+    except Exception as e:
+        print(f"Fatal error: {e}")
+        sys.exit(1)

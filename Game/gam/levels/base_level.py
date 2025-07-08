@@ -5,6 +5,8 @@ import os
 from gam.constants import BASE_DIR
 from gam.levels.platforms import Platform, MovingPlatform
 from gam.levels.player import Player
+from gam.levels.spikes import Spikes
+
 
 class BaseLevel(QWidget):
     def __init__(self, background_path, platforms_data, player_start, finish_line_x, parent=None):
@@ -43,7 +45,24 @@ class BaseLevel(QWidget):
             self.player.move_right()
         elif event.key() == Qt.Key.Key_Space:
             self.player.jump()
-        elif event.key() == Qt.Key.Key_1:
+    
+        # Получаем текущий уровень (1, 2, 3 и т.д.)
+        current_level = self.parent().current_level_index + 1 if self.parent() else 1
+    
+        # Блокировка смены гравитации для первого уровня
+        if current_level == 0:
+            return
+    
+        # Блокировка смены гравитации влево/вправо для второго уровня
+        if current_level == 1:
+            if event.key() == Qt.Key.Key_1:
+                self.player.set_gravity_down()
+            elif event.key() == Qt.Key.Key_2:
+                self.player.set_gravity_up()
+            return
+    
+        # Полная функциональность для остальных уровней
+        if event.key() == Qt.Key.Key_1:
             self.player.set_gravity_down()
         elif event.key() == Qt.Key.Key_2:
             self.player.set_gravity_up()
