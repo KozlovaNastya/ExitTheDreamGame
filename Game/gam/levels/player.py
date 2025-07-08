@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import QWidget, QApplication
 from PyQt6.QtGui import QPainter, QPixmap
-from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtCore import Qt, QTimer, QRect
 import os
 from gam.constants import BASE_DIR
 
@@ -36,20 +36,17 @@ class Player(QWidget):
             painter.fillRect(self.rect(), Qt.GlobalColor.red)
 
     def move_left(self):
-        self.vx = -5
+         self.vx = -5
 
     def move_right(self):
-        self.vx = 5
+         self.vx = 5
 
     def stop_movement(self):
         self.vx = 0
 
     def jump(self):
         if self.on_ground:
-            if self.gravity_y != 0:
-                self.vy = -self.gravity_y * self.jump_strength
-            else:
-                self.vx = -self.gravity_x * self.jump_strength
+            self.vy = -self.gravity_y * self.jump_strength
             self.on_ground = False
 
 
@@ -75,56 +72,6 @@ class Player(QWidget):
 
     def set_level(self, level):
         self.level = level
-
-    def update_position(self):
-        self.vx += self.gravity_x * self.gravity
-        self.vy += self.gravity_y * self.gravity
-
-        new_x = self.x() + self.vx
-        new_y = self.y() + self.vy
-        player_rect = self.geometry()
-
-        # Движение по X
-        self.move(new_x, self.y())
-        self.on_ground = False  # Сброс перед проверкой
-
-        for platform in self.platforms:
-            if self.geometry().intersects(platform.geometry()):
-                plat_rect = platform.geometry()
-                if self.vx > 0:  # Движение вправо
-                    self.move(plat_rect.left() - self.width(), self.y())
-                elif self.vx < 0:  # Влево
-                    self.move(plat_rect.right(), self.y())
-                self.vx = 0
-
-        # Движение по Y
-        self.move(self.x(), new_y)
-
-        for platform in self.platforms:
-            if self.geometry().intersects(platform.geometry()):
-                plat_rect = platform.geometry()
-                if self.vy > 0:  # Вниз
-                    self.move(self.x(), plat_rect.top() - self.height())
-                    self.on_ground = True
-                elif self.vy < 0:  # Вверх
-                    self.move(self.x(), plat_rect.bottom())
-                self.vy = 0
-
-        # Проверка выхода за пределы экрана
-        if self.y() > self.parent().height() or self.y() + self.height() < 0:
-            QApplication.quit()
-            return
-
-        if self.x() < 0:
-            self.move(0, self.y())
-            self.vx = 0
-        elif self.x() + self.width() > self.parent().width():
-            self.move(self.parent().width() - self.width(), self.y())
-            self.vx = 0
-
-        if hasattr(self.parent(), "check_level_complete"):
-            self.parent().check_level_complete()
-
 
     def check_on_ground(self, player_rect, platform_rect):
         tolerance = 5
@@ -154,4 +101,72 @@ class Player(QWidget):
                 player_rect.top() < platform_rect.bottom()
             )
         return False
+
+    def update_position(self):
+        # 1) Гравитация + интегрирование скоростей
+        self.vx += self.gravity_x * self.gravity
+        self.vy += self.gravity_y * self.gravity
+
+        # 2) Предсказание новых координат
+        new_x = self.x() + self.vx
+        new_y = self.y() + self.vy
+
+        # 3) Проверка столкновений по X
+        if self.gravity_x == 0:  # блокировка по X только для вертикальной гравитации
+            rect_x = QRect(new_x, self.y(), self.width(), self.height())
+            tolerance_y = 5
+            for platform in self.platforms:
+                 plat_rect = platform.geometry()
+                 if not rect_x.intersects(plat_rect):
+                     continue
+                 # вычисляем реальное вертикальное перекрытие
+                 overlap_y = min(rect_x.bottom(), plat_rect.bottom()) - max(rect_x.top(), plat_rect.top())
+                 if overlap_y <= tolerance_y:
+                     # это касание “потолка” или лишь граничное — игнорируем
+                     continue
+                 # настоящий боковой контакт, блокируем
+                 if self.vx > 0:   # идём вправо
+                     new_x = plat_rect.left() - self.width()
+                 elif self.vx < 0: # идём влево
+                     new_x = plat_rect.right()
+                 self.vx = 0
+                 break
+
+        # 4) Проверка столкновений по Y
+        rect_y = QRect(new_x, new_y, self.width(), self.height())
+        landed = False
+        for platform in self.platforms:
+            plat_rect = platform.geometry()
+            if rect_y.intersects(plat_rect):
+                if self.vy > 0:   # идём вниз
+                    new_y = plat_rect.top() - self.height()
+                    landed = True
+                elif self.vy < 0: # идём вверх
+                    new_y = plat_rect.bottom()
+                self.vy = 0
+                break
+
+        # 5) Применяем перемещение
+        self.move(new_x, new_y)
+
+        # 6) Границы окна
+        if new_y > self.parent().height() or new_y + self.height() < 0:
+            QApplication.quit()
+            return
+        if new_x < 0:
+            self.move(0, new_y);  self.vx = 0
+        elif new_x + self.width() > self.parent().width():
+            self.move(self.parent().width() - self.width(), new_y);  self.vx = 0
+
+        # 7) Обновляем on_ground универсально
+        self.on_ground = False
+        player_rect = self.geometry()
+        for platform in self.platforms:
+            if self.check_on_ground(player_rect, platform.geometry()):
+                self.on_ground = True
+                break
+
+        # 8) Проверка завершения уровня
+        if hasattr(self.parent(), "check_level_complete"):
+            self.parent().check_level_complete()
 

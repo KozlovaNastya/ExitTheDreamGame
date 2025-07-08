@@ -7,6 +7,7 @@ class LevelOne(BaseLevel):
             background_path="assets/background/level1.png",
             platforms_data=[
                 (10, 540, 150, 60, "assets/for game/platform.png"),
+                (10, 200, 150, 60, "assets/for game/platform.png"),
                 (140, 450, 150, 60, "assets/for game/platform.png"),
                 (260, 370, 150, 60, "assets/for game/platform.png"),
                 (360, 280, 100, 60, "assets/for game/platform.png"),
