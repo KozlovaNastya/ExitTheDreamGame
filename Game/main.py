@@ -6,7 +6,7 @@ class Game(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Gravity")
-        self.levels = [LevelFour, LevelFive]
+        self.levels = [LevelOne, LevelTwo, LevelThree, LevelFour, LevelFive]
         self.current_level_index = 0
         self.load_level(self.current_level_index)
 

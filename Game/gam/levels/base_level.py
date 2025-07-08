@@ -18,11 +18,15 @@ class BaseLevel(QWidget):
         self.platforms = []
         self.finish_line_x = finish_line_x
 
-        for x, y, w, h, path in platforms_data:
-            platform = Platform(x, y, w, h, path, parent=self)
+        for data in platforms_data:
+            if len(data) == 6:
+                x, y, w, h, path, rotation = data
+            else:
+                x, y, w, h, path = data
+                rotation = 0
+            platform = Platform(x, y, w, h, path, rotation, parent=self)
             platform.show()
             self.platforms.append(platform)
-
         self.player = Player(*player_start, "assets/for game/sprite1.png", parent=self)
         self.player.set_platforms(self.platforms)
         self.player.set_level(self)

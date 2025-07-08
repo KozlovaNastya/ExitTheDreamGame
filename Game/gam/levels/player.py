@@ -46,9 +46,12 @@ class Player(QWidget):
 
     def jump(self):
         if self.on_ground:
-            self.vx -= self.gravity_x * self.jump_strength
-            self.vy -= self.gravity_y * self.jump_strength
+            if self.gravity_y != 0:
+                self.vy = -self.gravity_y * self.jump_strength
+            else:
+                self.vx = -self.gravity_x * self.jump_strength
             self.on_ground = False
+
 
     def switch_gravity(self):
         self.gravity_direction *= -1
@@ -76,56 +79,79 @@ class Player(QWidget):
     def update_position(self):
         self.vx += self.gravity_x * self.gravity
         self.vy += self.gravity_y * self.gravity
+
         new_x = self.x() + self.vx
         new_y = self.y() + self.vy
-
-        # Предварительное перемещение
-        self.move(new_x, new_y)
-        self.on_ground = False
-
         player_rect = self.geometry()
 
+        # Движение по X
+        self.move(new_x, self.y())
+        self.on_ground = False  # Сброс перед проверкой
+
         for platform in self.platforms:
-            platform_rect = platform.geometry()
+            if self.geometry().intersects(platform.geometry()):
+                plat_rect = platform.geometry()
+                if self.vx > 0:  # Движение вправо
+                    self.move(plat_rect.left() - self.width(), self.y())
+                elif self.vx < 0:  # Влево
+                    self.move(plat_rect.right(), self.y())
+                self.vx = 0
 
-            if player_rect.intersects(platform_rect):
-                # Гравитация вниз
-                if self.gravity_y > 0 and self.vy > 0 and player_rect.bottom() - self.vy <= platform_rect.top():
-                    self.move(self.x(), platform.y() - self.height())
-                    self.vy = 0
-                    self.on_ground = True
-                # Гравитация вверх
-                elif self.gravity_y < 0 and self.vy < 0 and player_rect.top() - self.vy >= platform_rect.bottom():
-                    self.move(self.x(), platform.y() + platform.height())
-                    self.vy = 0
-                    self.on_ground = True
-                # Гравитация вправо
-                elif self.gravity_x > 0 and self.vx > 0 and player_rect.right() - self.vx <= platform_rect.left():
-                    self.move(platform.x() - self.width(), self.y())
-                    self.vx = 0
-                    self.on_ground = True
-                # Гравитация влево
-                elif self.gravity_x < 0 and self.vx < 0 and player_rect.left() - self.vx >= platform_rect.right():
-                    self.move(platform.x() + platform.width(), self.y())
-                    self.vx = 0
-                    self.on_ground = True
+        # Движение по Y
+        self.move(self.x(), new_y)
 
+        for platform in self.platforms:
+            if self.geometry().intersects(platform.geometry()):
+                plat_rect = platform.geometry()
+                if self.vy > 0:  # Вниз
+                    self.move(self.x(), plat_rect.top() - self.height())
+                    self.on_ground = True
+                elif self.vy < 0:  # Вверх
+                    self.move(self.x(), plat_rect.bottom())
+                self.vy = 0
 
-
-       # Выход за нижнюю границу — перезапуск
+        # Проверка выхода за пределы экрана
         if self.y() > self.parent().height() or self.y() + self.height() < 0:
-           from PyQt6.QtWidgets import QApplication
-           QApplication.quit()
-           return
+            QApplication.quit()
+            return
 
-       # Ограниичения по бокам
         if self.x() < 0:
             self.move(0, self.y())
+            self.vx = 0
         elif self.x() + self.width() > self.parent().width():
             self.move(self.parent().width() - self.width(), self.y())
+            self.vx = 0
 
-        # Проверка прохождения уровня
         if hasattr(self.parent(), "check_level_complete"):
             self.parent().check_level_complete()
 
+
+    def check_on_ground(self, player_rect, platform_rect):
+        tolerance = 5
+
+        if self.gravity_y > 0:  # Гравитация вниз
+            return (
+                abs(player_rect.bottom() - platform_rect.top()) <= tolerance and
+                player_rect.right() > platform_rect.left() and
+                player_rect.left() < platform_rect.right()
+            )
+        elif self.gravity_y < 0:  # Вверх
+            return (
+                abs(player_rect.top() - platform_rect.bottom()) <= tolerance and
+                player_rect.right() > platform_rect.left() and
+                player_rect.left() < platform_rect.right()
+            )
+        elif self.gravity_x > 0:  # Вправо
+            return (
+                abs(player_rect.right() - platform_rect.left()) <= tolerance and
+                player_rect.bottom() > platform_rect.top() and
+                player_rect.top() < platform_rect.bottom()
+            )
+        elif self.gravity_x < 0:  # Влево
+            return (
+                abs(player_rect.left() - platform_rect.right()) <= tolerance and
+                player_rect.bottom() > platform_rect.top() and
+                player_rect.top() < platform_rect.bottom()
+            )
+        return False
 
