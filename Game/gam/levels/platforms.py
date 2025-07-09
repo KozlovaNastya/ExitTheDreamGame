@@ -1,33 +1,41 @@
 from PyQt6.QtWidgets import QWidget
-from PyQt6.QtGui import QPainter, QPixmap
+from PyQt6.QtGui import QPainter, QPixmap, QTransform
 from PyQt6.QtCore import Qt, QTimer
 from gam.constants import BASE_DIR
 import os
 
 class Platform(QWidget):
-    def __init__(self, x, y, width, height, image_path=None, parent=None):
+    def __init__(self, x, y, width, height, image_path=None, rotation=0, parent=None):
         super().__init__(parent)
+        if rotation in (90, 270):
+            width, height = height, width
         self.setGeometry(x, y, width, height)
+        self.rotation = rotation
         if image_path:      
             full_path = os.path.join(BASE_DIR, image_path)
             self.image = QPixmap(full_path)
         else:
             self.image = None
 
+
     def paintEvent(self, event):
         painter = QPainter(self)
         if self.image and not self.image.isNull():
-            scaled_pixmap = self.image.scaled(self.size(), Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+            pixmap = self.image.transformed(
+                QTransform().rotate(self.rotation), Qt.TransformationMode.SmoothTransformation
+            )
+            scaled_pixmap = pixmap.scaled(
+                self.size(), Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation
+            )
             x = (self.width() - scaled_pixmap.width()) // 2
             y = (self.height() - scaled_pixmap.height()) // 2
             painter.drawPixmap(x, y, scaled_pixmap)
         else:
             painter.fillRect(self.rect(), Qt.GlobalColor.darkGray)
 
-
 class MovingPlatform(Platform):
-    def __init__(self, x, y, width, height, image_path=None, speed=2, move_range=(0, 100), parent=None):
-        super().__init__(x, y, width, height, image_path, parent)
+    def __init__(self, x, y, width, height, image_path=None, speed=2, move_range=(0, 100), rotation=0, parent=None):
+        super().__init__(x, y, width, height, image_path, rotation, parent)
 
         self.speed = speed
         self.move_range = move_range
@@ -53,7 +61,7 @@ class MovingPlatform(Platform):
 
         if hasattr(self.parent(), 'player'):
             player = self.parent().player
-            player_rect = player.geometry()
+            player_rect = player.geometry()     
             platform_rect = self.geometry()
 
             if (
