@@ -24,10 +24,6 @@ class Game(QMainWindow):
         self.grid.setContentsMargins(0, 0, 0, 0)
         self.grid.setSpacing(0)
 
-        # 2) Инициализируем пустой уровень
-        self.level_widget = None
-        self.load_level(self.current_level_index)
-
         # 3) Создаём hearts_widget и сразу кладём его в ту же ячейку (0,0),
         #    но с выравниванием сверху‑слева — это и сделает оверлей.
         self.hearts_widget = HeartsWidget(self.container)
@@ -39,30 +35,44 @@ class Game(QMainWindow):
             alignment=Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft
         )
 
+                # 2) Инициализируем пустой уровень
+        self.level_widget = None
+        self.load_level(self.current_level_index)
+
     def load_level(self, index):
-        if self.level_widget is not None:
-            # Если в уровне есть игрок — удаляем его корректно (останавливаем таймер и т.п.)
-            if hasattr(self.level_widget, 'player') and self.level_widget.player is not None:
-                self.level_widget.player.deleteLater()
 
-            if self.level_widget and hasattr(self.level_widget, 'player'):
-                self.level_widget.player.set_gravity_down()
+        # if self.level_widget is not None:
+        #     # Если в уровне есть игрок — удаляем его корректно (останавливаем таймер и т.п.)
+        #     if hasattr(self.level_widget, 'player') and self.level_widget.player is not None:
+        #         self.level_widget.player.deleteLater()
 
-            # Удаляем сам виджет уровня
-            self.level_widget.setParent(None)
-            self.level_widget.deleteLater()
-            self.level_widget = None
+        #     if self.level_widget and hasattr(self.level_widget, 'player'):
+        #         self.level_widget.player.set_gravity_down()
+
+        #     # Удаляем сам виджет уровня
+        #     self.level_widget.setParent(None)
+        #     self.level_widget.deleteLater()
+        #     self.level_widget = None
 
         # Если уровней больше нет — завершаем игру
         if index >= len(self.levels): 
             print("Game finished!")
             self.close()
             return
+        #!!!!!
+        if self.level_widget is not None:
+            self.level_widget.setParent(None)
+            self.level_widget.deleteLater()
+            self.level_widget = None
+
 
         # Создаём и добавляем новый уровень в layout
         self.level_widget = self.levels[index](parent=self.container, game=self)
         self.grid.addWidget(self.level_widget, 0, 0)
         self.level_widget.setFocus()
+
+        self.hearts_widget.raise_()
+        self.hearts_widget.update_level(index + 1)
 
 
     def load_next_level(self):

@@ -37,6 +37,7 @@ class BaseLevel(QWidget):
         self.player.set_level(self)
         self.player.show()
 
+
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.drawPixmap(self.rect(), self.background)

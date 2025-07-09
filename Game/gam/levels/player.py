@@ -111,88 +111,83 @@ class Player(QWidget):
         super().deleteLater()
 
     def update_position(self):
+        # 1) Стандартный расчёт скоростей и гравитации
         self.vx = max(-self.max_speed, min(self.vx, self.max_speed))
         self.vy = max(-self.max_speed, min(self.vy, self.max_speed))
-        # 1) Гравитация + интегрирование скоростей
         self.vx += self.gravity_x * self.gravity
         self.vy += self.gravity_y * self.gravity
 
         # 2) Предсказание новых координат
         new_x = self.x() + self.vx
         new_y = self.y() + self.vy
-
         player_rect = QRect(new_x, new_y, self.width(), self.height())
+
+        # 3) Смерть от шипов
         for platform in self.platforms:
             if isinstance(platform, Spikes) and player_rect.intersects(platform.geometry()):
-                # Сообщаем игре, что игрок умер (Game должен позаботиться о перезагрузке уровня)
-                if self.game is not None:
-                    self.timer.stop()  # Останавливаем таймер, чтобы избежать гонок
-                    self.game.player_died()
+                self.timer.stop()
+                self.game.player_died()
                 return
 
-
-
-        # 3) Проверка столкновений по X
-        if self.gravity_x == 0:  # блокировка по X только для вертикальной гравитации
-            rect_x = QRect(new_x, self.y(), self.width(), self.height())
-            tolerance_y = 5
-            for platform in self.platforms:
-                 plat_rect = platform.geometry()
-                 if not rect_x.intersects(plat_rect):
-                     continue
-                 # вычисляем реальное вертикальное перекрытие
-                 overlap_y = min(rect_x.bottom(), plat_rect.bottom()) - max(rect_x.top(), plat_rect.top())
-                 if overlap_y <= tolerance_y:
-                     # это касание “потолка” или лишь граничное — игнорируем
-                     continue
-                 # настоящий боковой контакт, блокируем
-                 if self.vx > 0:   # идём вправо
-                     new_x = plat_rect.left() - self.width()
-                 elif self.vx < 0: # идём влево
-                     new_x = plat_rect.right()
-                 self.vx = 0
-                 break
-
-                # 4) Проверка столкновений по Y
-        rect_y = QRect(new_x, new_y, self.width(), self.height())
-        landed = False
-        for platform in self.platforms:
-            plat_rect = platform.geometry()
-            if rect_y.intersects(plat_rect):
-                if self.vy > 0:   # идём вниз
-                    new_y = plat_rect.top() - self.height()
-                    landed = True
-                elif self.vy < 0: # идём вверх
-                    new_y = plat_rect.bottom()
-                self.vy = 0
-                break
-
-        # 5) Применяем перемещение — ВНЕ цикла
-        new_x = max(0, min(new_x, self.parent().width() - self.width()))
-        new_y = max(0, min(new_y, self.parent().height() - self.height()))
-
-        self.move(new_x, new_y)
-
-        # 6) Границы окна
-        if new_y > self.parent().height() or new_y + self.height() < 0:
-            if self.game is not None:
-                self.game.player_died()
+        # 4) Смерть от вылета за пределы (любое направление!)
+        #    Берём «границы уровня» — родительский виджет (Level)
+        lvl = self.parent()
+        if (new_x <= 0 or
+            new_y <= 0 or
+            new_y + self.height() >= lvl.height()):
+            self.timer.stop()
+            self.game.player_died()
             return
 
-        if new_x < 0:
-            self.move(0, new_y);  self.vx = 0
-        elif new_x + self.width() > self.parent().width():
-            self.move(self.parent().width() - self.width(), new_y);  self.vx = 0
+        # 5) Коллизии по X (если гравитация вертикальная)
+        if self.gravity_x == 0:
+            rect_x = QRect(new_x, self.y(), self.width(), self.height())
+            tol = 5
+            for plat in self.platforms:
+                pr = plat.geometry()
+                if not rect_x.intersects(pr):
+                    continue
+                # провалились «сквозь» по Y?
+                overlap_y = min(rect_x.bottom(), pr.bottom()) - max(rect_x.top(), pr.top())
+                if overlap_y <= tol:
+                    continue
+                # настоящий боковой контакт
+                if self.vx > 0:
+                    new_x = pr.left() - self.width()
+                else:
+                    new_x = pr.right()
+                self.vx = 0
+                break
 
-        # 7) Обновляем on_ground универсально
+        # 6) Коллизии по Y
+        rect_y = QRect(new_x, new_y, self.width(), self.height())
+        for plat in self.platforms:
+            pr = plat.geometry()
+            if not rect_y.intersects(pr):
+                continue
+            if self.vy > 0:
+                # падаем вниз — становимся на платформу
+                new_y = pr.top() - self.height()
+            else:
+                # подлетаем вверх — упираемся в дно платформы
+                new_y = pr.bottom()
+            self.vy = 0
+            break
+
+        # 7) Ограничиваем движение внутри экрана
+        new_x = max(0, min(new_x, lvl.width() - self.width()))
+        new_y = max(0, min(new_y, lvl.height() - self.height()))
+        self.move(new_x, new_y)
+        print("DEATH-CHECK:", new_x, new_y, lvl.width(), lvl.height())
+
+        # 8) Обновляем флаг on_ground
         self.on_ground = False
-        player_rect = self.geometry()
-        for platform in self.platforms:
-            if self.check_on_ground(player_rect, platform.geometry()):
+        pr = self.geometry()
+        for plat in self.platforms:
+            if self.check_on_ground(pr, plat.geometry()):
                 self.on_ground = True
                 break
 
-        # 8) Проверка завершения уровня
+        # 9) Проверка завершения уровня
         if hasattr(self.parent(), "check_level_complete"):
             self.parent().check_level_complete()
-
