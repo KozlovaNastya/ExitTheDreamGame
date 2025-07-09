@@ -49,8 +49,13 @@ class Player(QWidget):
 
     def jump(self):
         if self.on_ground:
-            self.vy = -self.gravity_y * self.jump_strength
+            # Прыжок направлен противоположно гравитации
+            if self.gravity_y != 0:
+                self.vy = -self.gravity_y * self.jump_strength
+            elif self.gravity_x != 0:
+                self.vx = -self.gravity_x * self.jump_strength
             self.on_ground = False
+
 
 
     def switch_gravity(self):
@@ -139,19 +144,20 @@ class Player(QWidget):
             self.game.player_died()
             return
 
-        # 5) Коллизии по X (если гравитация вертикальная)
-        if self.gravity_x == 0:
+        # 5 Коллизии 
+        if self.gravity_y != 0:
+            # Гравитация вертикальная — обрабатываем X как боковое движение
             rect_x = QRect(new_x, self.y(), self.width(), self.height())
             tol = 5
             for plat in self.platforms:
                 pr = plat.geometry()
                 if not rect_x.intersects(pr):
                     continue
-                # провалились «сквозь» по Y?
+                # Провалились «сквозь» по Y?
                 overlap_y = min(rect_x.bottom(), pr.bottom()) - max(rect_x.top(), pr.top())
                 if overlap_y <= tol:
                     continue
-                # настоящий боковой контакт
+                # Настоящий боковой контакт
                 if self.vx > 0:
                     new_x = pr.left() - self.width()
                 else:
@@ -159,20 +165,49 @@ class Player(QWidget):
                 self.vx = 0
                 break
 
-        # 6) Коллизии по Y
-        rect_y = QRect(new_x, new_y, self.width(), self.height())
-        for plat in self.platforms:
-            pr = plat.geometry()
-            if not rect_y.intersects(pr):
-                continue
-            if self.vy > 0:
-                # падаем вниз — становимся на платформу
-                new_y = pr.top() - self.height()
-            else:
-                # подлетаем вверх — упираемся в дно платформы
-                new_y = pr.bottom()
-            self.vy = 0
-            break
+            # Обработка по Y — основная ось гравитации
+            rect_y = QRect(new_x, new_y, self.width(), self.height())
+            for plat in self.platforms:
+                pr = plat.geometry()
+                if not rect_y.intersects(pr):
+                    continue
+                if self.vy > 0:
+                    new_y = pr.top() - self.height()
+                else:
+                    new_y = pr.bottom()
+                self.vy = 0
+                break
+
+        elif self.gravity_x != 0:
+            # Гравитация горизонтальная — обрабатываем Y как боковое движение
+            rect_y = QRect(self.x(), new_y, self.width(), self.height())
+            tol = 5
+            for plat in self.platforms:
+                pr = plat.geometry()
+                if not rect_y.intersects(pr):
+                    continue
+                overlap_x = min(rect_y.right(), pr.right()) - max(rect_y.left(), pr.left())
+                if overlap_x <= tol:
+                    continue
+                if self.vy > 0:
+                    new_y = pr.top() - self.height()
+                else:
+                    new_y = pr.bottom()
+                self.vy = 0
+                break
+
+            # Обработка по X — основная ось гравитации
+            rect_x = QRect(new_x, new_y, self.width(), self.height())
+            for plat in self.platforms:
+                pr = plat.geometry()
+                if not rect_x.intersects(pr):
+                    continue
+                if self.vx > 0:
+                    new_x = pr.left() - self.width()
+                else:
+                    new_x = pr.right()
+                self.vx = 0
+                break
 
         # 7) Ограничиваем движение внутри экрана
         new_x = max(0, min(new_x, lvl.width() - self.width()))

@@ -42,31 +42,72 @@ class BaseLevel(QWidget):
         painter = QPainter(self)
         painter.drawPixmap(self.rect(), self.background)
 
-    def keyPressEvent(self, event):
-        print(f"[DEBUG] key pressed: {event.key()}, player: {self.player}, game: {getattr(self, 'game', None)}")
-        print(f"[DEBUG] parent: {self.parent()}")
-        print(f"[DEBUG] current_level_index from game: {getattr(self.game, 'current_level_index', None)}")
+    # def keyPressEvent(self, event):
+    #     print(f"[DEBUG] key pressed: {event.key()}, player: {self.player}, game: {getattr(self, 'game', None)}")
+    #     print(f"[DEBUG] parent: {self.parent()}")
+    #     print(f"[DEBUG] current_level_index from game: {getattr(self.game, 'current_level_index', None)}")
 
-        if event.key() == Qt.Key.Key_Left:
-            self.player.move_left()
-        elif event.key() == Qt.Key.Key_Right:
-            self.player.move_right()
-        elif event.key() == Qt.Key.Key_Space:
-            self.player.jump()
+    #     if event.key() == Qt.Key.Key_Left:
+    #         self.player.move_left()
+    #     elif event.key() == Qt.Key.Key_Right:
+    #         self.player.move_right()
+    #     elif event.key() == Qt.Key.Key_Space:
+    #         self.player.jump()
     
-        current_level = self.game.current_level_index + 1 if self.game else 1
+    #     current_level = self.game.current_level_index + 1 if self.game else 1
 
    
+    #     if current_level == 1:
+    #         return
+   
+    #     elif current_level == 2:
+    #         if event.key() == Qt.Key.Key_1:
+    #             self.player.set_gravity_down()
+    #         elif event.key() == Qt.Key.Key_2:
+    #             self.player.set_gravity_up()
+    #         return
+ 
+    #     else:
+    #         if event.key() == Qt.Key.Key_1:
+    #             self.player.set_gravity_down()
+    #         elif event.key() == Qt.Key.Key_2:
+    #             self.player.set_gravity_up()
+    #         elif event.key() == Qt.Key.Key_3:
+    #             self.player.set_gravity_left()
+    #         elif event.key() == Qt.Key.Key_4:
+    #             self.player.set_gravity_right()
+    
+    def keyPressEvent(self, event):
+        gx, gy = self.player.gravity_x, self.player.gravity_y
+
+        if gy != 0:
+            # Вертикальная гравитация — разрешаем ?, ?, Space
+            if event.key() == Qt.Key.Key_Left:
+                self.player.move_left()
+            elif event.key() == Qt.Key.Key_Right:
+                self.player.move_right()
+            elif event.key() == Qt.Key.Key_Space:
+                self.player.jump()
+
+        elif gx != 0:
+            # Горизонтальная гравитация — разрешаем ?, ?, Space
+            if event.key() == Qt.Key.Key_Up:
+                self.player.vy = -5  # Движение вверх
+            elif event.key() == Qt.Key.Key_Down:
+                self.player.vy = 5   # Движение вниз
+            elif event.key() == Qt.Key.Key_Space:
+                self.player.jump()
+
+        # Управление гравитацией (как было)
+        current_level = self.game.current_level_index + 1 if self.game else 1
         if current_level == 1:
             return
-   
         elif current_level == 2:
             if event.key() == Qt.Key.Key_1:
                 self.player.set_gravity_down()
             elif event.key() == Qt.Key.Key_2:
                 self.player.set_gravity_up()
             return
- 
         else:
             if event.key() == Qt.Key.Key_1:
                 self.player.set_gravity_down()
@@ -78,9 +119,18 @@ class BaseLevel(QWidget):
                 self.player.set_gravity_right()
 
 
+    # def keyReleaseEvent(self, event):
+    #     if event.key() in (Qt.Key.Key_Left, Qt.Key.Key_Right):
+    #         self.player.stop_movement()
+
     def keyReleaseEvent(self, event):
-        if event.key() in (Qt.Key.Key_Left, Qt.Key.Key_Right):
+        gx, gy = self.player.gravity_x, self.player.gravity_y
+
+        if gy != 0 and event.key() in (Qt.Key.Key_Left, Qt.Key.Key_Right):
             self.player.stop_movement()
+        elif gx != 0 and event.key() in (Qt.Key.Key_Up, Qt.Key.Key_Down):
+            self.player.vy = 0
+
 
     def check_level_complete(self):
         if self.player.x() >= self.finish_line_x:
