@@ -6,8 +6,9 @@ from gam.constants import BASE_DIR
 from gam.levels.spikes import Spikes
 
 class Player(QWidget):
-    def __init__(self, x, y, width, height, image_path, parent=None):
+    def __init__(self, x, y, width, height, image_path, parent=None, game=None):
         super().__init__(parent)
+        self.game = game
         self.setGeometry(x, y, width, height)
 
         full_path = os.path.join(BASE_DIR, image_path)
@@ -25,6 +26,7 @@ class Player(QWidget):
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_position)
         self.timer.start(16)
+        self.max_speed = 20
 
     def set_platforms(self, platforms):
         self.platforms = platforms
@@ -109,6 +111,8 @@ class Player(QWidget):
         super().deleteLater()
 
     def update_position(self):
+        self.vx = max(-self.max_speed, min(self.vx, self.max_speed))
+        self.vy = max(-self.max_speed, min(self.vy, self.max_speed))
         # 1) Гравитация + интегрирование скоростей
         self.vx += self.gravity_x * self.gravity
         self.vy += self.gravity_y * self.gravity
@@ -120,10 +124,13 @@ class Player(QWidget):
         player_rect = QRect(new_x, new_y, self.width(), self.height())
         for platform in self.platforms:
             if isinstance(platform, Spikes) and player_rect.intersects(platform.geometry()):
-                # Проверяем, что уровень и его родитель существуют
-                if hasattr(self, 'level') and self.level and hasattr(self.level, 'parent') and self.level.parent():
-                    self.level.parent().load_level(self.level.parent().current_level_index)
+                # Сообщаем игре, что игрок умер (Game должен позаботиться о перезагрузке уровня)
+                if self.game is not None:
+                    self.timer.stop()  # Останавливаем таймер, чтобы избежать гонок
+                    self.game.player_died()
                 return
+
+
 
         # 3) Проверка столкновений по X
         if self.gravity_x == 0:  # блокировка по X только для вертикальной гравитации
@@ -146,7 +153,7 @@ class Player(QWidget):
                  self.vx = 0
                  break
 
-        # 4) Проверка столкновений по Y
+                # 4) Проверка столкновений по Y
         rect_y = QRect(new_x, new_y, self.width(), self.height())
         landed = False
         for platform in self.platforms:
@@ -160,13 +167,18 @@ class Player(QWidget):
                 self.vy = 0
                 break
 
-        # 5) Применяем перемещение
+        # 5) Применяем перемещение — ВНЕ цикла
+        new_x = max(0, min(new_x, self.parent().width() - self.width()))
+        new_y = max(0, min(new_y, self.parent().height() - self.height()))
+
         self.move(new_x, new_y)
 
         # 6) Границы окна
         if new_y > self.parent().height() or new_y + self.height() < 0:
-            QApplication.quit()
+            if self.game is not None:
+                self.game.player_died()
             return
+
         if new_x < 0:
             self.move(0, new_y);  self.vx = 0
         elif new_x + self.width() > self.parent().width():

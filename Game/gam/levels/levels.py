@@ -3,7 +3,7 @@ from gam.levels.platforms import MovingPlatform
 from gam.levels.spikes import Spikes
 
 class LevelOne(BaseLevel):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None,  game=None):
         super().__init__(
             background_path="assets/background/level1.png",
             platforms_data=[
@@ -17,11 +17,12 @@ class LevelOne(BaseLevel):
             ],
             player_start=(20, 400, 50, 50),
             finish_line_x=750,
-            parent=parent
+            parent=parent,
+            game=game
         )
 
 class LevelTwo(BaseLevel):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None,  game=None):
         super().__init__(
             background_path="assets/background/level2.png",
             platforms_data=[
@@ -39,7 +40,8 @@ class LevelTwo(BaseLevel):
             ], 
             player_start=(20, 400, 50, 50),
             finish_line_x=750,
-            parent=parent
+            parent=parent,
+            game=game
         )
         if not hasattr(self, 'platforms'):
             self.platforms = []
@@ -59,24 +61,35 @@ class LevelTwo(BaseLevel):
        
 
 class LevelThree(BaseLevel):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, game=None):
         super().__init__(
             background_path="assets/background/level3.png",
             platforms_data=[
-                (20, 500, 120, 40, "assets/for game/platform.png"),
-                (160, 430, 100, 40, "assets/for game/platform.png"),
-                (300, 360, 100, 40, "assets/for game/platform.png"),
-                (400, 320, 100, 40, "assets/for game/platform.png"),
-                (500, 280, 100, 40, "assets/for game/platform.png"),
-                (680, 240, 100, 40, "assets/for game/platform.png"),
+                (40, 550, 120, 40, "assets/for game/platform.png"),
+                (4, 450, 100, 40, "assets/for game/platform.png", 90),
+                (80, 350, 100, 40, "assets/for game/platform.png", 90),
+                (80, 270, 100, 40, "assets/for game/platform.png", 90),
+                (120, 140, 100, 40, "assets/for game/platform.png", 90),
+                (140, 10, 100, 40, "assets/for game/platform.png", 180),
+                (230, 10, 100, 40, "assets/for game/platform.png", 180),
+                (330, 10, 100, 40, "assets/for game/platform.png", 180),
+                (290, 130, 150, 60, "assets/for game/platform.png", 270),
+                (290, 250, 150, 60, "assets/for game/platform.png", 270),
+                (290, 380, 150, 60, "assets/for game/platform.png", 270),
+                (290, 510, 150, 60, "assets/for game/platform.png", 270),
+                (400, 500, 100, 40, "assets/for game/platform.png"),
+                (450, 300, 100, 40, "assets/for game/platform.png"),
+                (550, 400, 100, 40, "assets/for game/platform.png"),
+                (760, 300, 100, 40, "assets/for game/platform.png", 270),
             ],
-            player_start=(20, 400, 50, 50),
+            player_start=(80, 500, 50, 50),
             finish_line_x=750,
-            parent=parent
+            parent=parent,
+            game=game
         )
 
 class LevelFour(BaseLevel):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None,  game=None):
         super().__init__(
             background_path="assets/background/level4.png",
             platforms_data=[
@@ -85,7 +98,8 @@ class LevelFour(BaseLevel):
             ],
             player_start=(20, 400, 50, 50),
             finish_line_x=750,
-            parent=parent
+            parent=parent,
+            game=game
         )
 
         moving_platform1 = MovingPlatform(
@@ -113,9 +127,9 @@ class LevelFour(BaseLevel):
 
 
 class LevelFive(BaseLevel):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None,  game=None):
         super().__init__(
-            background_path="assets/background/level3.png",
+            background_path="assets/background/level5.png",
             platforms_data=[
                 (20, 500, 120, 40, "assets/for game/platform.png"),
                 (160, 430, 100, 40, "assets/for game/platform.png"),
@@ -126,5 +140,6 @@ class LevelFive(BaseLevel):
             ],
             player_start=(20, 400, 50, 50),
             finish_line_x=750,
-            parent=parent
+            parent=parent,
+            game=game
         )
