@@ -123,7 +123,7 @@ class LevelFour(BaseLevel):
         moving_platform2.show()
         self.player.set_platforms(self.platforms)
 
-        s
+       
 class LevelFive(BaseLevel):
     def __init__(self, parent=None,  game=None):
         super().__init__(

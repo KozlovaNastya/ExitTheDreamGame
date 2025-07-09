@@ -41,7 +41,7 @@ class MovingPlatform(Platform):
         self.move_range = move_range
         self.direction = 1
 
-        self.timer = QTimer()
+        self.timer = QTimer(self)
         self.timer.timeout.connect(self.move_platform)
         self.timer.start(16)
 

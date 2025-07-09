@@ -42,41 +42,6 @@ class BaseLevel(QWidget):
         painter = QPainter(self)
         painter.drawPixmap(self.rect(), self.background)
 
-    # def keyPressEvent(self, event):
-    #     print(f"[DEBUG] key pressed: {event.key()}, player: {self.player}, game: {getattr(self, 'game', None)}")
-    #     print(f"[DEBUG] parent: {self.parent()}")
-    #     print(f"[DEBUG] current_level_index from game: {getattr(self.game, 'current_level_index', None)}")
-
-    #     if event.key() == Qt.Key.Key_Left:
-    #         self.player.move_left()
-    #     elif event.key() == Qt.Key.Key_Right:
-    #         self.player.move_right()
-    #     elif event.key() == Qt.Key.Key_Space:
-    #         self.player.jump()
-    
-    #     current_level = self.game.current_level_index + 1 if self.game else 1
-
-   
-    #     if current_level == 1:
-    #         return
-   
-    #     elif current_level == 2:
-    #         if event.key() == Qt.Key.Key_1:
-    #             self.player.set_gravity_down()
-    #         elif event.key() == Qt.Key.Key_2:
-    #             self.player.set_gravity_up()
-    #         return
- 
-    #     else:
-    #         if event.key() == Qt.Key.Key_1:
-    #             self.player.set_gravity_down()
-    #         elif event.key() == Qt.Key.Key_2:
-    #             self.player.set_gravity_up()
-    #         elif event.key() == Qt.Key.Key_3:
-    #             self.player.set_gravity_left()
-    #         elif event.key() == Qt.Key.Key_4:
-    #             self.player.set_gravity_right()
-    
     def keyPressEvent(self, event):
         gx, gy = self.player.gravity_x, self.player.gravity_y
 
@@ -117,11 +82,6 @@ class BaseLevel(QWidget):
                 self.player.set_gravity_left()
             elif event.key() == Qt.Key.Key_4:
                 self.player.set_gravity_right()
-
-
-    # def keyReleaseEvent(self, event):
-    #     if event.key() in (Qt.Key.Key_Left, Qt.Key.Key_Right):
-    #         self.player.stop_movement()
 
     def keyReleaseEvent(self, event):
         gx, gy = self.player.gravity_x, self.player.gravity_y

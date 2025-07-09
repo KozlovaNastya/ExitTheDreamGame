@@ -4,13 +4,17 @@ from PyQt6.QtWidgets import (
     QMainWindow,
     QWidget,
     QGridLayout,
+    QDialog
 )
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, pyqtSignal
 from gam.levels.levels import LevelOne, LevelTwo, LevelThree, LevelFour, LevelFive
 from gam.levels.health import HeartsWidget
+from gam.levels.game_over import GameOverDialog
+
 
 
 class Game(QMainWindow):
+    back_to_menu_signal = pyqtSignal()
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Gravity")
@@ -40,16 +44,17 @@ class Game(QMainWindow):
         self.load_level(self.current_level_index)
 
     def load_level(self, index):
+        if self.level_widget is not None:
+            self.level_widget.setParent(None)
+            self.level_widget.deleteLater()
+            self.level_widget = None
+            
         # Если уровней больше нет — завершаем игру
         if index >= len(self.levels): 
             print("Game finished!")
             self.close()
             return
- 
-        if self.level_widget is not None:
-            self.level_widget.setParent(None)
-            self.level_widget.deleteLater()
-            self.level_widget = None
+
 
         # Создаём и добавляем новый уровень в layout
         self.level_widget = self.levels[index](parent=self.container, game=self)
@@ -65,23 +70,31 @@ class Game(QMainWindow):
         self.hearts_widget.update_level(self.current_level_index + 1)
         self.load_level(self.current_level_index)
 
+    # def player_died(self):
+    #     self.hearts_widget.lose_life()
+    #     if self.hearts_widget.lives <= 0:
+    #         dialog = GameOverDialog(self)
+    #         result = dialog.exec()  # Показываем диалог и ждём действия
+    #         if result == QDialog.DialogCode.Accepted.value:
+    #             self.hearts_widget.reset_lives()
+    #             self.current_level_index = 0
+    #             self.hearts_widget.update_level(1)
+    #             self.load_level(self.current_level_index)
+    #         return  # Прерываем — не загружаем уровень дальше
+    #     self.load_level(self.current_level_index)
+
     def player_died(self):
         self.hearts_widget.lose_life()
+
         if self.hearts_widget.lives <= 0:
-            self.hearts_widget.reset_lives()
-            self.current_level_index = 0
-            self.hearts_widget.update_level(1)
-        # Всегда загружаем уровень заново при смерти
+            dialog = GameOverDialog(self)
+            result = dialog.exec()
+
+            if result == QDialog.DialogCode.Accepted.value:
+                self.back_to_menu_signal.emit()
+
+            return  # Всегда выходи после обработки диалога
+
+        # Если ещё остались жизни
         self.load_level(self.current_level_index)
 
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    try:
-        game = Game()
-        game.resize(800, 600)
-        game.show()
-        sys.exit(app.exec())
-    except Exception as e:
-        print(f"Fatal error: {e}")
-        sys.exit(1)
