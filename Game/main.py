@@ -10,6 +10,7 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from gam.levels.levels import LevelOne, LevelTwo, LevelThree, LevelFour, LevelFive
 from gam.levels.health import HeartsWidget
 from gam.levels.game_over import GameOverDialog
+from gam.levels.game_complete import GameCompletedDialog
 
 
 
@@ -51,8 +52,13 @@ class Game(QMainWindow):
             
         # Если уровней больше нет — завершаем игру
         if index >= len(self.levels): 
-            print("Game finished!")
-            self.close()
+            dialog = GameCompletedDialog(self)
+            result = dialog.exec()
+            if result == QDialog.DialogCode.Accepted.value:
+                self.back_to_menu_signal.emit()
+            else:
+                # Если хочешь, можно сделать что-то еще или просто закрыть игру
+                self.close()
             return
 
 
@@ -70,18 +76,6 @@ class Game(QMainWindow):
         self.hearts_widget.update_level(self.current_level_index + 1)
         self.load_level(self.current_level_index)
 
-    # def player_died(self):
-    #     self.hearts_widget.lose_life()
-    #     if self.hearts_widget.lives <= 0:
-    #         dialog = GameOverDialog(self)
-    #         result = dialog.exec()  # Показываем диалог и ждём действия
-    #         if result == QDialog.DialogCode.Accepted.value:
-    #             self.hearts_widget.reset_lives()
-    #             self.current_level_index = 0
-    #             self.hearts_widget.update_level(1)
-    #             self.load_level(self.current_level_index)
-    #         return  # Прерываем — не загружаем уровень дальше
-    #     self.load_level(self.current_level_index)
 
     def player_died(self):
         self.hearts_widget.lose_life()

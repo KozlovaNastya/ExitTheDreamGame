@@ -46,7 +46,7 @@ class BaseLevel(QWidget):
         gx, gy = self.player.gravity_x, self.player.gravity_y
 
         if gy != 0:
-            # Вертикальная гравитация — разрешаем ?, ?, Space
+            # пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ ?, ?, Space
             if event.key() == Qt.Key.Key_Left:
                 self.player.move_left()
             elif event.key() == Qt.Key.Key_Right:
@@ -55,15 +55,15 @@ class BaseLevel(QWidget):
                 self.player.jump()
 
         elif gx != 0:
-            # Горизонтальная гравитация — разрешаем ?, ?, Space
+            # пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ ?, ?, Space
             if event.key() == Qt.Key.Key_Up:
-                self.player.vy = -5  # Движение вверх
+                self.player.vy = -5  # пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
             elif event.key() == Qt.Key.Key_Down:
-                self.player.vy = 5   # Движение вниз
+                self.player.vy = 5   # пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
             elif event.key() == Qt.Key.Key_Space:
                 self.player.jump()
 
-        # Управление гравитацией (как было)
+        # пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ)
         current_level = self.game.current_level_index + 1 if self.game else 1
         if current_level == 1:
             return
