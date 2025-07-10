@@ -167,5 +167,3 @@ class BaseLevel(QWidget):
             platform.hide()
             self.platforms.remove(platform)
             platform.deleteLater()
-
-

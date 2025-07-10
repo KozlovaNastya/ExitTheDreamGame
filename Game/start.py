@@ -5,6 +5,8 @@ from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PyQt6.QtCore import QUrl
 from gam.main_menu import MainMenu
 from main import Game
+from gam.intro import StoryDialog
+
 
 class AudioManager:
     def __init__(self):
@@ -92,15 +94,36 @@ if __name__ == "__main__":
     menu.current_game = None
     
     def handle_start(level, name):
+        story = """
+        Oh... That dream again... 
+        I need to wake up quickly or 
+        I'll get sucked into the abyss of endless dreams.
+
+        avoid the thorns and strange platforms
+        """
+        controls = """
+        Controls:
+        - Left/Right arrows — move
+        OR
+        - WASD (you can chose it in settings)
+        - Space — jump
+        On level2 use:
+        1 - gravity down
+        2 - gravity up
+        On level3 use:
+        3 - gravity left
+        4 - gravity right
+        """
+        dialog = StoryDialog(story, controls)
+        dialog.exec()
         game = Game()
-        print("Game instance created")
         game.audio_manager = audio_manager
-        print(f"Assigned audio_manager with control_scheme: {game.audio_manager.control_scheme}")
         game.resize(800, 600)
         game.show()
         menu.hide()
         menu.current_game = game
         game.back_to_menu_signal.connect(handle_back_to_menu)
+
 
     def handle_back_to_menu():
         if menu.current_game:

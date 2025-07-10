@@ -734,7 +734,6 @@ if __name__ == "__main__":
     menu = MainMenu()
 
     def handle_start(level, name):
-        print(f"Starting game: level {level}, player {name}")
         game = Game()
         game.resize(800, 600)
         game.show()

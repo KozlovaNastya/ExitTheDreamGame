@@ -1,10 +1,12 @@
 import sys
+import json
 from PyQt6.QtWidgets import (
     QApplication,
     QMainWindow,
     QWidget,
     QGridLayout,
-    QDialog
+    QDialog,
+    QInputDialog
 )
 from PyQt6.QtCore import Qt, pyqtSignal
 from gam.levels.levels import LevelOne, LevelTwo, LevelThree, LevelFour, LevelFive
@@ -90,4 +92,3 @@ class Game(QMainWindow):
             return
 
         self.load_level(self.current_level_index)
-
