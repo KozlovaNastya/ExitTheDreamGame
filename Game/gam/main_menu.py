@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-import sys
+﻿import sys
 import os
 import json
 from PyQt6.QtWidgets import (QMainWindow, QApplication, QMessageBox, 
@@ -68,54 +67,201 @@ class ConfirmDialog(QDialog):
         self.confirm_button.clicked.connect(self.accept)
         self.cancel_button.clicked.connect(self.reject)
 
+from PyQt6.QtWidgets import (QDialog, QVBoxLayout, QLabel, QSlider, 
+                            QPushButton, QComboBox, QHBoxLayout, QWidget)
+from PyQt6.QtCore import Qt, pyqtSignal
+
 class SettingsDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.audio_manager = parent.audio_manager
         self.setWindowTitle("Settings")
-        self.setFixedSize(500, 350)
-        self.setStyleSheet(DIALOG_STYLE + """
-            QComboBox, QSlider {
-                background: rgba(40, 10, 60, 180);
+        self.setFixedSize(500, 400)
+        
+        self.setStyleSheet("""
+            QDialog {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                    stop:0 #2a0845, stop:1 #7a1a5a);
+                color: #ffffff;
+                font-family: 'Minecraft';
+            }
+            QLabel {
+                color: #ffffff;
+                font-size: 14px;
+                font-weight: bold;
+                margin-bottom: 5px;
+            }
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #5a2a75, stop:1 #9a3a7a);
+                color: white;
+                border: 2px solid #ba5a9a;
+                border-radius: 3px;
+                padding: 5px 10px;
+                font-family: 'Minecraft';
+                font-weight: bold;
+                min-width: 80px;
+            }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #6a3a85, stop:1 #aa4a8a);
+                border: 2px solid #da7aba;
+            }
+            QComboBox {
+                background: rgba(60, 20, 80, 220);
                 border: 2px solid #9a3a7a;
-                border-radius: 2px;
+                border-radius: 3px;
+                padding: 8px 35px 8px 10px;
+                min-height: 30px;
+                margin-bottom: 15px;
+                font-family: 'Minecraft';
+                color: white;
+            }
+            QComboBox::drop-down {
+                subcontrol-origin: padding;
+                subcontrol-position: center right;
+                width: 30px;
+                border-left: 1px solid #7a2a65;
+            }
+            QComboBox::down-arrow {
+                image: none;
+                font-family: 'Arial';
+                font-size: 16px;
+                content: "...";
+                color: white;
+                padding-right: 10px;
+            }
+            QComboBox QAbstractItemView {
+                background: rgba(50, 15, 70, 255);
+                border: 2px solid #9a3a7a;
+                selection-background-color: #7a2a65;
+                selection-color: white;
+                outline: none;
                 padding: 5px;
-                min-height: 25px;
+            }
+            QComboBox QAbstractItemView::item {
+                height: 28px;
+                padding: 0 10px;
+                border-bottom: 1px solid #5a2a75;
+            }
+            QSlider {
+                margin: 10px 0 15px 0;
+            }
+            QSlider::groove:horizontal {
+                height: 6px;
+                background: #4a1a6a;
+                border-radius: 3px;
+                border: 1px solid #7a3a8a;
+            }
+            QSlider::handle:horizontal {
+                width: 16px;
+                height: 16px;
+                margin: -5px 0;
+                background: qradialgradient(
+                    cx:0.5, cy:0.5, radius:0.5,
+                    fx:0.5, fy:0.5, 
+                    stop:0 #ba5a9a, stop:1 #9a3a7a
+                );
+                border: 1px solid #da7aba;
+                border-radius: 8px;
             }
         """)
         
         layout = QVBoxLayout()
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.setSpacing(15)
+        layout.setContentsMargins(25, 25, 25, 20)
+        layout.setSpacing(10)
         
+        # Volume section
         self.volume_label = QLabel("Audio Volume:")
+        layout.addWidget(self.volume_label)
+        
+        # Slider with value
+        slider_container = QWidget()
+        slider_layout = QHBoxLayout(slider_container)
+        slider_layout.setContentsMargins(0, 0, 0, 0)
+        slider_layout.setSpacing(15)
+        
         self.volume_slider = QSlider(Qt.Orientation.Horizontal)
         self.volume_slider.setRange(0, 100)
-        self.volume_slider.setValue(80)
-        layout.addWidget(self.volume_label)
-        layout.addWidget(self.volume_slider)
         
+        self.volume_value = QLabel("80")
+        self.volume_value.setFixedWidth(40)
+        self.volume_value.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        self.volume_value.setStyleSheet("font-size: 16px; font-weight: bold;")
+        
+        slider_layout.addWidget(self.volume_slider)
+        slider_layout.addWidget(self.volume_value)
+        layout.addWidget(slider_container)
+        
+        # Quality settings
         self.quality_label = QLabel("Graphics Quality:")
+        layout.addWidget(self.quality_label)
+        
         self.quality_combo = QComboBox()
         self.quality_combo.addItems(["Low", "Medium", "High", "Ultra"])
-        layout.addWidget(self.quality_label)
         layout.addWidget(self.quality_combo)
         
+        # Controls settings
         self.controls_label = QLabel("Control Scheme:")
+        layout.addWidget(self.controls_label)
+        
         self.controls_combo = QComboBox()
         self.controls_combo.addItems(["Arrow Keys", "WASD"])
-        layout.addWidget(self.controls_label)
         layout.addWidget(self.controls_combo)
         
-        button_layout = QHBoxLayout()
+        # Spacer
+        layout.addStretch()
+        
+        # Buttons with extra large spacing
+        button_container = QWidget()
+        button_layout = QHBoxLayout(button_container)
+        button_layout.setContentsMargins(0, 0, 0, 0)
+        button_layout.setSpacing(60)  # Увеличенное расстояние
+        
         self.save_button = QPushButton("Save")
+        self.save_button.setFixedSize(120, 35)
         self.cancel_button = QPushButton("Cancel")
+        self.cancel_button.setFixedSize(120, 35)
+        
+        button_layout.addStretch()
         button_layout.addWidget(self.save_button)
         button_layout.addWidget(self.cancel_button)
-        layout.addLayout(button_layout)
+        button_layout.addStretch()
+        
+        layout.addWidget(button_container)
         
         self.setLayout(layout)
+        
+        # Load settings
+        self.initial_volume = int(self.audio_manager.music_output.volume() * 100)
+        self.initial_quality = self.audio_manager.graphics_quality  # Store initial quality
+        
+        self.volume_slider.setValue(self.initial_volume)
+        self.volume_value.setText(str(self.initial_volume))
+        self.quality_combo.setCurrentText(self.initial_quality)  # Set current quality
+        
+        # Connections
+        self.volume_slider.valueChanged.connect(self.on_volume_changed)
         self.save_button.clicked.connect(self.accept)
-        self.cancel_button.clicked.connect(self.reject)
+        self.cancel_button.clicked.connect(self.on_cancel)
+    
+    def on_volume_changed(self, value):
+        self.volume_value.setText(str(value))
+        if self.audio_manager:
+            self.audio_manager.set_volume(value)
+    
+    def on_cancel(self):
+        # Restore initial settings
+        if self.audio_manager:
+            self.audio_manager.set_volume(self.initial_volume)
+            self.audio_manager.graphics_quality = self.initial_quality  # Restore quality
+        self.reject()
+    
+    def accept(self):
+        # Save settings when accepted
+        if self.audio_manager:
+            self.audio_manager.graphics_quality = self.quality_combo.currentText()
+        super().accept()
 
 class LeaderboardDialog(QDialog):
     def __init__(self, parent=None):
@@ -218,8 +364,12 @@ class LeaderboardDialog(QDialog):
 class MainMenu(QMainWindow):
     start_game_signal = pyqtSignal(int, str)
     
-    def __init__(self):
+    def __init__(self, audio_manager=None):
         super().__init__()
+        self.audio_manager = audio_manager
+        self.click_sound = os.path.join(os.path.dirname(__file__), "sounds", "click.mp3")
+        self.hover_sound = os.path.join(os.path.dirname(__file__), "sounds", "hover.mp3")  # если есть
+        self.last_hovered_button = None
         self.setWindowTitle("Exit the Dream - Main Menu")
         self.setFixedSize(800, 600)
         
@@ -254,34 +404,106 @@ class MainMenu(QMainWindow):
     
     def create_background(self):
         """Create background image, either from file or gradient"""
+        quality = self.audio_manager.graphics_quality if self.audio_manager else "Medium"
+        
         bg_path = os.path.join(self.assets_path, "background", "level0.png")
         if os.path.exists(bg_path):
             bg = QPixmap(bg_path)
             if not bg.isNull():
-                bg = bg.scaled(800, 600, 
-                             Qt.AspectRatioMode.KeepAspectRatioByExpanding,
-                             Qt.TransformationMode.SmoothTransformation)
+                # Apply quality settings with stronger differences
+                if quality == "Low":
+                    # Low quality: heavy pixelation
+                    bg = bg.scaled(200, 150, 
+                                 Qt.AspectRatioMode.KeepAspectRatioByExpanding,
+                                 Qt.TransformationMode.FastTransformation)
+                    bg = bg.scaled(800, 600, 
+                                 Qt.AspectRatioMode.KeepAspectRatioByExpanding,
+                                 Qt.TransformationMode.FastTransformation)
+                elif quality == "Medium":
+                    # Medium quality: moderate pixelation
+                    bg = bg.scaled(400, 300, 
+                                 Qt.AspectRatioMode.KeepAspectRatioByExpanding,
+                                 Qt.TransformationMode.FastTransformation)
+                    bg = bg.scaled(800, 600, 
+                                 Qt.AspectRatioMode.KeepAspectRatioByExpanding,
+                                 Qt.TransformationMode.SmoothTransformation)
+                elif quality == "High":
+                    # High quality: slight pixelation
+                    bg = bg.scaled(600, 450, 
+                                 Qt.AspectRatioMode.KeepAspectRatioByExpanding,
+                                 Qt.TransformationMode.SmoothTransformation)
+                    bg = bg.scaled(800, 600, 
+                                 Qt.AspectRatioMode.KeepAspectRatioByExpanding,
+                                 Qt.TransformationMode.SmoothTransformation)
+                else:  # Ultra
+                    # Ultra quality: no pixelation, high quality
+                    bg = bg.scaled(800, 600, 
+                                 Qt.AspectRatioMode.KeepAspectRatioByExpanding,
+                                 Qt.TransformationMode.SmoothTransformation)
+                
                 return bg.copy((bg.width()-800)//2, (bg.height()-600)//2, 800, 600)
         
+        # If no file, create gradient background
         bg = QPixmap(800, 600)
+        painter = QPainter(bg)
         gradient = QLinearGradient(0, 0, 800, 600)
         gradient.setColorAt(0, QColor(42, 8, 69))
         gradient.setColorAt(1, QColor(122, 26, 90))
-        bg.fill(gradient)
+        painter.fillRect(bg.rect(), gradient)
+        painter.end()
         return bg
     
     def create_logo(self):
         """Create logo image, either from file or generated"""
+        quality = self.audio_manager.graphics_quality if self.audio_manager else "Medium"
+        
         logo_path = os.path.join(self.assets_path, "for game", "gameOver.png")
         if os.path.exists(logo_path):
             logo = QPixmap(logo_path)
             if not logo.isNull():
-                return logo.scaledToHeight(120, Qt.TransformationMode.SmoothTransformation)
+                # Apply stronger quality differences to logo
+                if quality == "Low":
+                    # Low quality: heavy pixelation
+                    logo = logo.scaled(100, 30, 
+                                     Qt.AspectRatioMode.KeepAspectRatio,
+                                     Qt.TransformationMode.FastTransformation)
+                    logo = logo.scaled(400, 120, 
+                                     Qt.AspectRatioMode.KeepAspectRatio,
+                                     Qt.TransformationMode.FastTransformation)
+                elif quality == "Medium":
+                    # Medium quality: moderate pixelation
+                    logo = logo.scaled(200, 60, 
+                                     Qt.AspectRatioMode.KeepAspectRatio,
+                                     Qt.TransformationMode.FastTransformation)
+                    logo = logo.scaled(400, 120, 
+                                     Qt.AspectRatioMode.KeepAspectRatio,
+                                     Qt.TransformationMode.SmoothTransformation)
+                elif quality == "High":
+                    # High quality: slight pixelation
+                    logo = logo.scaled(300, 90, 
+                                     Qt.AspectRatioMode.KeepAspectRatio,
+                                     Qt.TransformationMode.SmoothTransformation)
+                    logo = logo.scaled(400, 120, 
+                                     Qt.AspectRatioMode.KeepAspectRatio,
+                                     Qt.TransformationMode.SmoothTransformation)
+                else:  # Ultra
+                    # Ultra quality: no pixelation, high quality
+                    logo = logo.scaled(400, 120, 
+                                     Qt.AspectRatioMode.KeepAspectRatio,
+                                     Qt.TransformationMode.SmoothTransformation)
+                
+                return logo
         
+        # If no file, generate logo
         logo = QPixmap(400, 100)
         logo.fill(Qt.GlobalColor.transparent)
         painter = QPainter(logo)
-        painter.setFont(QFont("Minecraft", 32, QFont.Weight.Bold))
+        
+        # Apply quality to generated logo
+        if quality == "Low":
+            painter.setFont(QFont("Minecraft", 24, QFont.Weight.Bold))
+        else:
+            painter.setFont(QFont("Minecraft", 32, QFont.Weight.Bold))
         
         painter.setPen(QColor(0, 0, 0, 150))
         painter.drawText(logo.rect().translated(2, 2), Qt.AlignmentFlag.AlignCenter, "EXIT THE DREAM")
@@ -393,26 +615,51 @@ class MainMenu(QMainWindow):
                 painter.setPen(Qt.PenStyle.NoPen)
                 painter.setBrush(QBrush(hover_color))
                 painter.drawRect(rect.adjusted(-2, -2, 2, 2))
+
+    def mouseMoveEvent(self, event):
+        super().mouseMoveEvent(event)
+        
+        # Проверяем какая кнопка под курсором
+        current_hover = None
+        for btn, rect in self.button_rects.items():
+            if rect.contains(event.pos()):
+                current_hover = btn
+                break
+        
+        # Воспроизводим звук при наведении на новую кнопку
+        if (current_hover != self.last_hovered_button and 
+            current_hover is not None and 
+            self.audio_manager and 
+            os.path.exists(self.hover_sound)):
+            
+            self.audio_manager.play_sound(self.hover_sound)
+        
+        self.last_hovered_button = current_hover
     
     def mousePressEvent(self, event):
-        """Handle mouse press on buttons"""
         for btn, rect in self.button_rects.items():
             if rect.contains(event.pos()):
                 self.pressed_button = btn
                 self.update()
                 break
+        super().mousePressEvent(event)
     
     def mouseReleaseEvent(self, event):
         """Handle mouse release and button clicks"""
         if self.pressed_button:
             btn = self.pressed_button
             if self.button_rects[btn].contains(event.pos()):
+                if hasattr(self, 'audio_manager') and self.audio_manager:
+                    self.audio_manager.play_click()
                 self.handle_button_click(btn)
             self.pressed_button = None
             self.update()
-    
+        super().mouseReleaseEvent(event)
+
     def handle_button_click(self, button):
-        """Route button clicks to appropriate handlers"""
+        if self.audio_manager:
+            self.audio_manager.play_click()
+            
         handlers = {
             "start": self.start_game,
             "exit": self.confirm_exit,
@@ -421,9 +668,9 @@ class MainMenu(QMainWindow):
             "restart": self.confirm_restart
         }
         handlers.get(button, lambda: None)()
-    
+
     def start_game(self):
-        """Emit signal to start the game"""
+        """Start the game with current level"""
         self.start_game_signal.emit(self.current_level, self.player_name)
     
     def confirm_restart(self):
@@ -450,7 +697,11 @@ class MainMenu(QMainWindow):
     def show_options(self):
         """Show options dialog"""
         dialog = SettingsDialog(self)
-        dialog.exec()
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            # Update background when settings are saved
+            self.background = self.create_background()
+            self.logo = self.create_logo()
+            self.update()
     
     def show_leaderboard(self):
         """Show leaderboard dialog"""
