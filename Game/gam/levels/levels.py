@@ -15,7 +15,7 @@ class LevelOne(BaseLevel):
                 (570, 410, 80, 40, "assets/for game/platform.png"),
                 (650, 450, 80, 40, "assets/for game/platform.png"),
             ],
-            player_start=(20, 400, 50, 50),
+            player_start=(20, 400, 35, 50),
             finish_line_x=750,
             parent=parent,
             game=game
@@ -38,7 +38,7 @@ class LevelTwo(BaseLevel):
                 (500, 500, 190, 60, "assets/for game/platform.png"),
                 (650, 500, 160, 60, "assets/for game/platform.png"),
             ], 
-            player_start=(20, 400, 50, 50),
+            player_start=(20, 400, 35, 50),
             finish_line_x=750,
             parent=parent,
             game=game
@@ -82,7 +82,7 @@ class LevelThree(BaseLevel):
                 (550, 400, 100, 40, "assets/for game/platform.png"),
                 (760, 300, 100, 40, "assets/for game/platform.png", 270),
             ],
-            player_start=(80, 500, 50, 50),
+            player_start=(80, 500, 35, 50),
             finish_line_x=750,
             parent=parent,
             game=game
@@ -114,7 +114,7 @@ class LevelFour(BaseLevel):
                 (520, 220, 120, 50, "assets/for game/platform.png", 270),
                 (520, 330, 120, 50, "assets/for game/platform.png", 270),
             ],
-            player_start=(20, 400, 50, 50),
+            player_start=(20, 400, 35, 50),
             finish_line_x=750,
             parent=parent,
             game=game
@@ -163,7 +163,7 @@ class LevelFive(BaseLevel):
                 (190, 100, 120, 50, "assets/for game/platform.png", 180, 7000),
                 (10, 300, 120, 50, "assets/for game/platform.png", 90, 7000),
             ],
-            player_start=(20, 450, 50, 50),
+            player_start=(20, 450, 35, 50),
             finish_line_x=750,
             parent=parent,
             game=game

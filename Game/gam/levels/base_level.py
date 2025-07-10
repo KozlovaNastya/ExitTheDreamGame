@@ -12,7 +12,6 @@ class BaseLevel(QWidget):
     def __init__(self, background_path, platforms_data, player_start, finish_line_x, parent=None, game=None):
         super().__init__(parent)
         self.game = game
-        print(f"[DEBUG] BaseLevel created with game: {self.game}, parent: {self.parent()}")
         self.setFixedSize(800, 600)
         self.background = QPixmap(os.path.join(BASE_DIR, background_path))
 
@@ -29,7 +28,7 @@ class BaseLevel(QWidget):
                 platform.show()
                 self.platforms.append(platform)
 
-        self.player = Player(*player_start, "assets/for game/sprite1.png", parent=self, game=game)
+        self.player = Player(*player_start, "assets/for game/sprite_stand.png", parent=self, game=game)
         self.player.set_platforms(self.platforms)
         self.player.set_level(self)
         self.player.show()
