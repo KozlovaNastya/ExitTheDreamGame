@@ -85,7 +85,7 @@ class Game(QMainWindow):
             dialog = GameOverDialog(self)
             result = dialog.exec()
 
-            if result == QDialog.DialogCode.Accepted.value:
+            if result == QDialog.DialogCode.Accepted:
                 self.back_to_menu_signal.emit()
 
             return  # Всегда выходи после обработки диалога

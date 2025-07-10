@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton, QHBoxLayout
+from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtCore import Qt
 
@@ -36,6 +36,7 @@ class GameOverDialog(QDialog):
         layout.setSpacing(15)
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
+        # Картинка
         self.image_label = QLabel()
         pixmap = QPixmap("assets/buttons/game_over.png")
         if pixmap.isNull():
@@ -45,19 +46,7 @@ class GameOverDialog(QDialog):
         self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.image_label)
 
-        self.text_label = QLabel("Game Over")
-        self.text_label.setStyleSheet("color: #e0c3ff; font-size: 24px; font-weight: bold;")
-        self.text_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(self.text_label)
-
-        button_layout = QHBoxLayout()
-        button_layout.setSpacing(20)
-
-        self.retry_button = QPushButton("Retry")
+        # Кнопка "Back to Menu"
         self.menu_button = QPushButton("Back to Menu")
-        button_layout.addWidget(self.retry_button)
-        button_layout.addWidget(self.menu_button)
-        layout.addLayout(button_layout)
-
-        self.retry_button.clicked.connect(self.accept)
-        self.menu_button.clicked.connect(self.reject)
+        self.menu_button.clicked.connect(self.accept)  # <--- Важно!
+        layout.addWidget(self.menu_button, alignment=Qt.AlignmentFlag.AlignCenter)
