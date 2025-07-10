@@ -70,19 +70,6 @@ class Game(QMainWindow):
         self.hearts_widget.update_level(self.current_level_index + 1)
         self.load_level(self.current_level_index)
 
-    # def player_died(self):
-    #     self.hearts_widget.lose_life()
-    #     if self.hearts_widget.lives <= 0:
-    #         dialog = GameOverDialog(self)
-    #         result = dialog.exec()  # Показываем диалог и ждём действия
-    #         if result == QDialog.DialogCode.Accepted.value:
-    #             self.hearts_widget.reset_lives()
-    #             self.current_level_index = 0
-    #             self.hearts_widget.update_level(1)
-    #             self.load_level(self.current_level_index)
-    #         return  # Прерываем — не загружаем уровень дальше
-    #     self.load_level(self.current_level_index)
-
     def player_died(self):
         self.hearts_widget.lose_life()
 
@@ -93,8 +80,7 @@ class Game(QMainWindow):
             if result == QDialog.DialogCode.Accepted.value:
                 self.back_to_menu_signal.emit()
 
-            return  # Всегда выходи после обработки диалога
+            return
 
-        # Если ещё остались жизни
         self.load_level(self.current_level_index)
 
