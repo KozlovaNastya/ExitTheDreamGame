@@ -27,7 +27,6 @@ class BaseLevel(QWidget):
             if platform:
                 platform.show()
                 self.platforms.append(platform)
-
         self.player = Player(*player_start, "assets/for game/sprite_stand.png", parent=self, game=game)
         self.player.set_platforms(self.platforms)
         self.player.set_level(self)
@@ -56,7 +55,6 @@ class BaseLevel(QWidget):
                 self.player.vy = 5
             elif event.key() == Qt.Key.Key_Space:
                 self.player.jump()
-
         current_level = self.game.current_level_index + 1 if self.game else 1
         if current_level == 1:
             return

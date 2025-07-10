@@ -77,7 +77,6 @@ class Game(QMainWindow):
         self.hearts_widget.update_level(self.current_level_index + 1)
         self.load_level(self.current_level_index)
 
-
     def player_died(self):
         self.hearts_widget.lose_life()
 
@@ -88,8 +87,7 @@ class Game(QMainWindow):
             if result == QDialog.DialogCode.Accepted:
                 self.back_to_menu_signal.emit()
 
-            return  # Всегда выходи после обработки диалога
+            return
 
-        # Если ещё остались жизни
         self.load_level(self.current_level_index)
 
