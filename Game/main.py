@@ -13,7 +13,6 @@ from gam.levels.game_over import GameOverDialog
 from gam.levels.game_complete import GameCompletedDialog
 
 
-
 class Game(QMainWindow):
     back_to_menu_signal = pyqtSignal()
     def __init__(self):
@@ -65,6 +64,7 @@ class Game(QMainWindow):
 
         # Создаём и добавляем новый уровень в layout
         self.level_widget = self.levels[index](parent=self.container, game=self)
+
         self.grid.addWidget(self.level_widget, 0, 0)
         self.level_widget.setFocus()
 
