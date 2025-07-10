@@ -44,6 +44,7 @@ class Game(QMainWindow):
         self.level_widget = None
         self.load_level(self.current_level_index)
 
+
     def load_level(self, index):
         if self.level_widget is not None:
             self.level_widget.setParent(None)

@@ -5,6 +5,7 @@ import os
 from gam.constants import BASE_DIR
 from gam.levels.spikes import Spikes
 
+
 class Player(QWidget):
     def __init__(self, x, y, width, height, image_path, parent=None, game=None):
         super().__init__(parent)
@@ -128,8 +129,10 @@ class Player(QWidget):
         player_rect = QRect(new_x, new_y, self.width(), self.height())
 
         # 3) Смерть от шипов
-        for platform in self.platforms:
-            if isinstance(platform, Spikes) and player_rect.intersects(platform.geometry()):
+        for plat in self.platforms:
+            if not plat.isVisible() or getattr(plat, '_is_disappeared', False):
+                continue
+            if isinstance(plat, Spikes) and player_rect.intersects(plat.geometry()):
                 self.timer.stop()
                 self.game.player_died()
                 return
@@ -150,6 +153,8 @@ class Player(QWidget):
             rect_x = QRect(new_x, self.y(), self.width(), self.height())
             tol = 5
             for plat in self.platforms:
+                if not plat.isVisible() or getattr(plat, '_is_disappeared', False):
+                    continue
                 pr = plat.geometry()
                 if not rect_x.intersects(pr):
                     continue
@@ -168,6 +173,8 @@ class Player(QWidget):
             # Обработка по Y — основная ось гравитации
             rect_y = QRect(new_x, new_y, self.width(), self.height())
             for plat in self.platforms:
+                if not plat.isVisible() or getattr(plat, '_is_disappeared', False):
+                    continue
                 pr = plat.geometry()
                 if not rect_y.intersects(pr):
                     continue
@@ -178,11 +185,14 @@ class Player(QWidget):
                 self.vy = 0
                 break
 
+
         elif self.gravity_x != 0:
             # Гравитация горизонтальная — обрабатываем Y как боковое движение
             rect_y = QRect(self.x(), new_y, self.width(), self.height())
             tol = 5
             for plat in self.platforms:
+                if not plat.isVisible() or getattr(plat, '_is_disappeared', False):
+                    continue
                 pr = plat.geometry()
                 if not rect_y.intersects(pr):
                     continue
@@ -199,6 +209,8 @@ class Player(QWidget):
             # Обработка по X — основная ось гравитации
             rect_x = QRect(new_x, new_y, self.width(), self.height())
             for plat in self.platforms:
+                if not plat.isVisible() or getattr(plat, '_is_disappeared', False):
+                    continue
                 pr = plat.geometry()
                 if not rect_x.intersects(pr):
                     continue
@@ -213,12 +225,13 @@ class Player(QWidget):
         new_x = max(0, min(new_x, lvl.width() - self.width()))
         new_y = max(0, min(new_y, lvl.height() - self.height()))
         self.move(new_x, new_y)
-        print("DEATH-CHECK:", new_x, new_y, lvl.width(), lvl.height())
 
         # 8) Обновляем флаг on_ground
         self.on_ground = False
         pr = self.geometry()
         for plat in self.platforms:
+            if not plat.isVisible() or getattr(plat, '_is_disappeared', False):
+                continue
             if self.check_on_ground(pr, plat.geometry()):
                 self.on_ground = True
                 break
@@ -226,3 +239,4 @@ class Player(QWidget):
         # 9) Проверка завершения уровня
         if hasattr(self.parent(), "check_level_complete"):
             self.parent().check_level_complete()
+

@@ -1,5 +1,5 @@
 from gam.levels.base_level import BaseLevel
-from gam.levels.platforms import MovingPlatform
+from gam.levels.platforms import MovingPlatform, DisappearingPlatform, create_platform_from_data
 from gam.levels.spikes import Spikes
 
 class LevelOne(BaseLevel):
@@ -47,13 +47,13 @@ class LevelTwo(BaseLevel):
             self.platforms = []
         
         spikes_data = [
-            (115, 465, 50, 40, "assets/for game/spikes3.png"),
-            (230, 465, 50, 40, "assets/for game/spikes3.png"),
-            (740, 465, 50, 40, "assets/for game/spikes3.png"),
+            (115, 465, 70, 65, "assets/for game/spikes3.png", 0),
+            (220, 465, 70, 65, "assets/for game/spikes3.png", 0),
+            (730, 460, 70, 70, "assets/for game/spikes3.png", 0),
         ]
         
-        for x, y, width, height, image_path in spikes_data:
-            spikes = Spikes(x, y, width, height, image_path, parent=self)
+        for x, y, width, height, image_path, rotation in spikes_data:
+            spikes = Spikes(x, y, width, height, image_path, rotation, parent=self)
             spikes.show()
             self.platforms.append(spikes)
         
@@ -71,7 +71,7 @@ class LevelThree(BaseLevel):
                 (80, 270, 100, 40, "assets/for game/platform.png", 90),
                 (120, 140, 100, 40, "assets/for game/platform.png", 90),
                 (140, 10, 100, 40, "assets/for game/platform.png", 180),
-                (230, 10, 100, 40, "assets/for game/platform.png", 180),
+                (235, 10, 100, 40, "assets/for game/platform.png", 180),
                 (330, 10, 100, 40, "assets/for game/platform.png", 180),
                 (290, 130, 150, 60, "assets/for game/platform.png", 270),
                 (290, 250, 150, 60, "assets/for game/platform.png", 270),
@@ -88,13 +88,31 @@ class LevelThree(BaseLevel):
             game=game
         )
 
+        if not hasattr(self, 'platforms'):
+            self.platforms = []
+        
+        spikes_data = [
+            (245, 145, 150, 70, "assets/for game/spikes.png", 270),
+            (245, 295, 150, 70, "assets/for game/spikes.png", 270),
+            (245, 445, 150, 70, "assets/for game/spikes.png", 270),
+        ]
+        
+        for x, y, width, height, image_path, rotation in spikes_data:
+            spikes = Spikes(x, y, width, height, image_path, rotation, parent=self)
+            spikes.show()
+            self.platforms.append(spikes)
+
 class LevelFour(BaseLevel):
     def __init__(self, parent=None,  game=None):
         super().__init__(
             background_path="assets/background/level4.png",
             platforms_data=[
-                (20, 500, 120, 40, "assets/for game/platform.png"),
-                (300, 360, 100, 40, "assets/for game/platform.png"),
+                (20, 500, 120, 50, "assets/for game/platform.png"),
+                (280, 180, 120, 50, "assets/for game/platform.png"),
+                (520, 0, 120, 50, "assets/for game/platform.png", 270),
+                (520, 110, 120, 50, "assets/for game/platform.png", 270),
+                (520, 220, 120, 50, "assets/for game/platform.png", 270),
+                (520, 330, 120, 50, "assets/for game/platform.png", 270),
             ],
             player_start=(20, 400, 50, 50),
             finish_line_x=750,
@@ -103,41 +121,103 @@ class LevelFour(BaseLevel):
         )
 
         moving_platform1 = MovingPlatform(
-            x=160, y=430, width=100, height=40,
+            x=170, y=420, width=120, height=50,
             image_path="assets/for game/platform.png",
             speed=1,
-            move_range=(150, 450),
+            move_range_y=(220, 480),
             parent=self
         )
         self.platforms.append(moving_platform1)
         moving_platform1.show()
 
         moving_platform2 = MovingPlatform(
-            x=570, y=430, width=100, height=40,
+            x=540, y=550, width=120, height=50,
             image_path="assets/for game/platform.png",
             speed=1,
-            move_range=(470, 700),
+            move_range_x=(430, 700),
             parent=self
         )
         self.platforms.append(moving_platform2)
         moving_platform2.show()
         self.player.set_platforms(self.platforms)
+        
+        spikes_data = [
+            (485, 30, 70, 60, "assets/for game/spikes3.png", 270),
+            (500, 322, 55, 30, "assets/for game/spikes3.png", 270),
+        ]
+        
+        for x, y, width, height, image_path, rotation in spikes_data:
+            spikes = Spikes(x, y, width, height, image_path, rotation, parent=self)
+            spikes.show()
+            self.platforms.append(spikes)
 
        
 class LevelFive(BaseLevel):
-    def __init__(self, parent=None,  game=None):
+    def __init__(self, parent=None, game=None):
         super().__init__(
             background_path="assets/background/level5.png",
             platforms_data=[
-                (20, 500, 120, 40, "assets/for game/platform.png"),
-                (160, 430, 100, 40, "assets/for game/platform.png"),
-                (300, 360, 100, 40, "assets/for game/platform.png"),
-                (400, 320, 100, 40, "assets/for game/platform.png"),
-                (500, 280, 100, 40, "assets/for game/platform.png"),
-                (680, 240, 100, 40, "assets/for game/platform.png"),
+                (20, 500, 120, 50, "assets/for game/platform.png", 0, 3000),
+                (200, 480, 120, 50, "assets/for game/platform.png", 0, 3000),
+                (320, 420, 120, 50, "assets/for game/platform.png", 0, 5000),
+                (190, 100, 120, 50, "assets/for game/platform.png", 180, 7000),
+                (10, 300, 120, 50, "assets/for game/platform.png", 90, 7000),
             ],
-            player_start=(20, 400, 50, 50),
+            player_start=(20, 450, 50, 50),
             finish_line_x=750,
             parent=parent,
             game=game
         )
+
+        # Инициализация platforms уже выполнена в BaseLevel
+        
+        moving_platform1 = MovingPlatform(
+            x=600, y=500, width=120, height=50,
+            image_path="assets/for game/platform.png",
+            speed=1,
+            move_range_y=(100, 600),
+            rotation=270,
+            parent=self
+        )
+        self.platforms.append(moving_platform1)
+        moving_platform1.show()
+
+        moving_platform2 = MovingPlatform(
+            x=700, y=200, width=120, height=50,
+            image_path="assets/for game/platform.png",
+            speed=1,
+            move_range_y=(10, 500),
+            rotation=270,
+            parent=self
+        )
+        self.platforms.append(moving_platform2)
+        moving_platform2.show()
+
+        spikes1 = Spikes(
+            x=520, y=450, width=150, height=70,
+            image_path="assets/for game/spikes.png",
+            rotation=270,
+            parent=self
+        )
+        spikes1.show()
+        self.platforms.append(spikes1)
+        spikes2 = Spikes(
+            x=520, y=10, width=150, height=70,
+            image_path="assets/for game/spikes.png",
+            rotation=270,
+            parent=self
+        )
+        spikes2.show()
+        self.platforms.append(spikes2)
+
+        spikes3 = Spikes(
+            x=530, y=160, width=70, height=50,
+            image_path="assets/for game/spikes3.png",
+            rotation=270,
+            parent=self
+        )
+        spikes3.show()
+        self.platforms.append(spikes3)
+
+        if hasattr(self, 'player') and self.player:
+            self.player.set_platforms(self.platforms)
