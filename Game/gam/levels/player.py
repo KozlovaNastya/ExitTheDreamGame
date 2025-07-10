@@ -288,8 +288,8 @@ class Player(QWidget):
 
 
     def play_gravity_animation(self):
-        self.current_pixmap = self.image_anim  # спец-картинка при смене гравитации
-        self.animation_timer.start(1000)  # через 150 мс вернётся к idle
+        self.current_pixmap = self.image_anim
+        self.animation_timer.start(800)
         self.update()
 
     def play_walk_animation(self):

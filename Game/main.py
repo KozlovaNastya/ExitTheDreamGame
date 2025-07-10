@@ -18,7 +18,7 @@ class Game(QMainWindow):
     back_to_menu_signal = pyqtSignal()
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Gravity")
+        self.setWindowTitle("Exit the Dream")
         self.levels = [LevelOne, LevelTwo, LevelThree, LevelFour, LevelFive]
         self.current_level_index = 0
 
