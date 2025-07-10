@@ -282,6 +282,9 @@ class LeaderboardDialog(QDialog):
                 padding: 5px;
                 border: 1px solid #ba5a9a;
             }
+            QTableWidget::item {
+                padding: 5px;
+            }
         """)
         
         layout = QVBoxLayout()
@@ -345,18 +348,26 @@ class LeaderboardDialog(QDialog):
         
         for item in [rank_item, player_item, score_item]:
             item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-       
-        if row == 0:
+        
+        # Set medal colors and font weights
+        if row == 0:  # Gold
             color = QColor(255, 215, 0)
-        elif row == 1:
+            font_weight = QFont.Weight.Bold
+        elif row == 1:  # Silver
             color = QColor(192, 192, 192)
-        elif row == 2:
+            font_weight = QFont.Weight.Bold
+        elif row == 2:  # Bronze
             color = QColor(205, 127, 50)
-        else:
+            font_weight = QFont.Weight.Bold
+        else:  # Others
             color = QColor(255, 255, 255)
-            
+            font_weight = QFont.Weight.Normal
+        
         for item in [rank_item, player_item, score_item]:
             item.setForeground(color)
+            font = item.font()
+            font.setWeight(font_weight)
+            item.setFont(font)
         
         self.table.setItem(row, 0, rank_item)
         self.table.setItem(row, 1, player_item)
