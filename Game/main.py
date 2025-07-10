@@ -15,6 +15,10 @@ from gam.levels.health import HeartsWidget
 from gam.levels.game_over import GameOverDialog
 from gam.levels.game_complete import GameCompletedDialog
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> dc3e0d35468c7d711d03e1dc5a2d70657cfb6526
 class Game(QMainWindow):
     back_to_menu_signal = pyqtSignal()
     def __init__(self):
@@ -75,6 +79,7 @@ class Game(QMainWindow):
             return
 
         self.level_widget = self.levels[index](parent=self.container, game=self)
+
         self.grid.addWidget(self.level_widget, 0, 0)
         self.level_widget.setFocus()
 

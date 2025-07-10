@@ -32,30 +32,91 @@ class BaseLevel(QWidget):
         self.player.set_level(self)
         self.player.show()
 
+        self.audio_manager = None
+        if game and hasattr(game, 'audio_manager'):
+            self.audio_manager = game.audio_manager
+
+
 
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.drawPixmap(self.rect(), self.background)
 
+    # def keyPressEvent(self, event):
+    #     gx, gy = self.player.gravity_x, self.player.gravity_y
+
+    #     if gy != 0:
+    #         if event.key() == Qt.Key.Key_Left:
+    #             self.player.move_left()
+    #         elif event.key() == Qt.Key.Key_Right:
+    #             self.player.move_right()
+    #         elif event.key() == Qt.Key.Key_Space:
+    #             self.player.jump()
+
+    #     elif gx != 0:
+    #         if event.key() == Qt.Key.Key_Up:
+    #             self.player.vy = -5 
+    #         elif event.key() == Qt.Key.Key_Down:
+    #             self.player.vy = 5
+    #         elif event.key() == Qt.Key.Key_Space:
+    #             self.player.jump()
+    #     current_level = self.game.current_level_index + 1 if self.game else 1
+    #     if current_level == 1:
+    #         return
+    #     elif current_level == 2:
+    #         if event.key() == Qt.Key.Key_1:
+    #             self.player.set_gravity_down()
+    #         elif event.key() == Qt.Key.Key_2:
+    #             self.player.set_gravity_up()
+    #         return
+    #     else:
+    #         if event.key() == Qt.Key.Key_1:
+    #             self.player.set_gravity_down()
+    #         elif event.key() == Qt.Key.Key_2:
+    #             self.player.set_gravity_up()
+    #         elif event.key() == Qt.Key.Key_3:
+    #             self.player.set_gravity_left()
+    #         elif event.key() == Qt.Key.Key_4:
+    #             self.player.set_gravity_right()
+
+    # def keyReleaseEvent(self, event):
+    #     gx, gy = self.player.gravity_x, self.player.gravity_y
+
+    #     if gy != 0 and event.key() in (Qt.Key.Key_Left, Qt.Key.Key_Right):
+    #         self.player.stop_movement()
+    #     elif gx != 0 and event.key() in (Qt.Key.Key_Up, Qt.Key.Key_Down):
+    #         self.player.vy = 0
+
     def keyPressEvent(self, event):
+        if not hasattr(self, "player") or self.player is None:
+            return
+
+        scheme = self.audio_manager.control_scheme if hasattr(self, "audio_manager") and self.audio_manager else "Arrow Keys"
         gx, gy = self.player.gravity_x, self.player.gravity_y
 
         if gy != 0:
-            if event.key() == Qt.Key.Key_Left:
+            if (scheme == "Arrow Keys" and event.key() == Qt.Key.Key_Left) or \
+               (scheme == "WASD" and event.key() == Qt.Key.Key_A):
                 self.player.move_left()
-            elif event.key() == Qt.Key.Key_Right:
+            elif (scheme == "Arrow Keys" and event.key() == Qt.Key.Key_Right) or \
+                 (scheme == "WASD" and event.key() == Qt.Key.Key_D):
                 self.player.move_right()
-            elif event.key() == Qt.Key.Key_Space:
+            elif event.key() == Qt.Key.Key_Space or \
+                 (scheme == "WASD" and event.key() == Qt.Key.Key_W) or \
+                 (scheme == "Arrow Keys" and event.key() == Qt.Key.Key_Up):
                 self.player.jump()
 
         elif gx != 0:
-            if event.key() == Qt.Key.Key_Up:
-                self.player.vy = -5 
-            elif event.key() == Qt.Key.Key_Down:
+            if (scheme == "Arrow Keys" and event.key() == Qt.Key.Key_Up) or \
+               (scheme == "WASD" and event.key() == Qt.Key.Key_W):
+                self.player.vy = -5
+            elif (scheme == "Arrow Keys" and event.key() == Qt.Key.Key_Down) or \
+                 (scheme == "WASD" and event.key() == Qt.Key.Key_S):
                 self.player.vy = 5
             elif event.key() == Qt.Key.Key_Space:
                 self.player.jump()
-        current_level = self.game.current_level_index + 1 if self.game else 1
+
+        current_level = self.game.current_level_index + 1 if hasattr(self, "game") and self.game else 1
         if current_level == 1:
             return
         elif current_level == 2:
@@ -75,12 +136,21 @@ class BaseLevel(QWidget):
                 self.player.set_gravity_right()
 
     def keyReleaseEvent(self, event):
+        if not hasattr(self, "player") or self.player is None:
+            return
+
+        scheme = self.audio_manager.control_scheme if hasattr(self, "audio_manager") and self.audio_manager else "Arrow Keys"
         gx, gy = self.player.gravity_x, self.player.gravity_y
 
-        if gy != 0 and event.key() in (Qt.Key.Key_Left, Qt.Key.Key_Right):
-            self.player.stop_movement()
-        elif gx != 0 and event.key() in (Qt.Key.Key_Up, Qt.Key.Key_Down):
-            self.player.vy = 0
+        if gy != 0:
+            if (scheme == "Arrow Keys" and event.key() in (Qt.Key.Key_Left, Qt.Key.Key_Right)) or \
+               (scheme == "WASD" and event.key() in (Qt.Key.Key_A, Qt.Key.Key_D)):
+                self.player.stop_movement()
+        elif gx != 0:
+            if (scheme == "Arrow Keys" and event.key() in (Qt.Key.Key_Up, Qt.Key.Key_Down)) or \
+               (scheme == "WASD" and event.key() in (Qt.Key.Key_W, Qt.Key.Key_S)):
+                self.player.vy = 0
+
 
 
     def check_level_complete(self):

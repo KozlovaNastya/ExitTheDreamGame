@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+п»ї# -*- coding: utf-8 -*-
 import sys
 import os
 import json
@@ -217,7 +217,7 @@ class SettingsDialog(QDialog):
         button_container = QWidget()
         button_layout = QHBoxLayout(button_container)
         button_layout.setContentsMargins(0, 0, 0, 0)
-        button_layout.setSpacing(60)  # Увеличенное расстояние
+        button_layout.setSpacing(60)  # РЈРІРµР»РёС‡РµРЅРЅРѕРµ СЂР°СЃСЃС‚РѕСЏРЅРёРµ
         
         self.save_button = QPushButton("Save")
         self.save_button.setFixedSize(120, 35)
@@ -240,6 +240,8 @@ class SettingsDialog(QDialog):
         self.volume_slider.setValue(self.initial_volume)
         self.volume_value.setText(str(self.initial_volume))
         self.quality_combo.setCurrentText(self.initial_quality)  # Set current quality
+
+        self.controls_combo.setCurrentText(self.audio_manager.control_scheme)
         
         # Connections
         self.volume_slider.valueChanged.connect(self.on_volume_changed)
@@ -262,7 +264,9 @@ class SettingsDialog(QDialog):
         # Save settings when accepted
         if self.audio_manager:
             self.audio_manager.graphics_quality = self.quality_combo.currentText()
+            self.audio_manager.control_scheme = self.controls_combo.currentText()
         super().accept()
+
 
 class LeaderboardDialog(QDialog):
     def __init__(self, parent=None):
@@ -380,7 +384,7 @@ class MainMenu(QMainWindow):
         super().__init__()
         self.audio_manager = audio_manager
         self.click_sound = os.path.join(os.path.dirname(__file__), "sounds", "click.mp3")
-        self.hover_sound = os.path.join(os.path.dirname(__file__), "sounds", "hover.mp3")  # если есть
+        self.hover_sound = os.path.join(os.path.dirname(__file__), "sounds", "hover.mp3")  # РµСЃР»Рё РµСЃС‚СЊ
         self.last_hovered_button = None
         self.setWindowTitle("Exit the Dream - Main Menu")
         self.setFixedSize(800, 600)
@@ -631,14 +635,14 @@ class MainMenu(QMainWindow):
     def mouseMoveEvent(self, event):
         super().mouseMoveEvent(event)
         
-        # Проверяем какая кнопка под курсором
+        # РџСЂРѕРІРµСЂСЏРµРј РєР°РєР°СЏ РєРЅРѕРїРєР° РїРѕРґ РєСѓСЂСЃРѕСЂРѕРј
         current_hover = None
         for btn, rect in self.button_rects.items():
             if rect.contains(event.pos()):
                 current_hover = btn
                 break
         
-        # Воспроизводим звук при наведении на новую кнопку
+        # Р’РѕСЃРїСЂРѕРёР·РІРѕРґРёРј Р·РІСѓРє РїСЂРё РЅР°РІРµРґРµРЅРёРё РЅР° РЅРѕРІСѓСЋ РєРЅРѕРїРєСѓ
         if (current_hover != self.last_hovered_button and 
             current_hover is not None and 
             self.audio_manager and 

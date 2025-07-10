@@ -26,6 +26,8 @@ class AudioManager:
         
         self.set_volume(80)  # Default volume 80%
         self.graphics_quality = "Medium"  # Default graphics quality
+
+        self.control_scheme = "Arrow Keys"
         
     def set_volume(self, volume):
         """Set volume for all sounds (0-100)"""
@@ -92,7 +94,9 @@ if __name__ == "__main__":
     
     def handle_start(level, name):
         game = Game()
+        print("Game instance created")
         game.audio_manager = audio_manager
+        print(f"Assigned audio_manager with control_scheme: {game.audio_manager.control_scheme}")
         game.resize(800, 600)
         game.show()
         menu.hide()
