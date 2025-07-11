@@ -1,4 +1,5 @@
-﻿import sys
+﻿# -*- coding: utf-8 -*-
+import sys
 import os
 import json
 from PyQt6.QtWidgets import (QMainWindow, QApplication, QMessageBox, 
@@ -171,11 +172,9 @@ class SettingsDialog(QDialog):
         layout.setContentsMargins(25, 25, 25, 20)
         layout.setSpacing(10)
         
-        # Volume section
         self.volume_label = QLabel("Audio Volume:")
         layout.addWidget(self.volume_label)
         
-        # Slider with value
         slider_container = QWidget()
         slider_layout = QHBoxLayout(slider_container)
         slider_layout.setContentsMargins(0, 0, 0, 0)
@@ -193,7 +192,6 @@ class SettingsDialog(QDialog):
         slider_layout.addWidget(self.volume_value)
         layout.addWidget(slider_container)
         
-        # Quality settings
         self.quality_label = QLabel("Graphics Quality:")
         layout.addWidget(self.quality_label)
         
@@ -201,7 +199,6 @@ class SettingsDialog(QDialog):
         self.quality_combo.addItems(["Low", "Medium", "High", "Ultra"])
         layout.addWidget(self.quality_combo)
         
-        # Controls settings
         self.controls_label = QLabel("Control Scheme:")
         layout.addWidget(self.controls_label)
         
@@ -209,14 +206,12 @@ class SettingsDialog(QDialog):
         self.controls_combo.addItems(["Arrow Keys", "WASD"])
         layout.addWidget(self.controls_combo)
         
-        # Spacer
         layout.addStretch()
         
-        # Buttons with extra large spacing
         button_container = QWidget()
         button_layout = QHBoxLayout(button_container)
         button_layout.setContentsMargins(0, 0, 0, 0)
-        button_layout.setSpacing(60)  # Увеличенное расстояние
+        button_layout.setSpacing(60)
         
         self.save_button = QPushButton("Save")
         self.save_button.setFixedSize(120, 35)
@@ -232,15 +227,15 @@ class SettingsDialog(QDialog):
         
         self.setLayout(layout)
         
-        # Load settings
         self.initial_volume = int(self.audio_manager.music_output.volume() * 100)
-        self.initial_quality = self.audio_manager.graphics_quality  # Store initial quality
+        self.initial_quality = self.audio_manager.graphics_quality
         
         self.volume_slider.setValue(self.initial_volume)
         self.volume_value.setText(str(self.initial_volume))
-        self.quality_combo.setCurrentText(self.initial_quality)  # Set current quality
+        self.quality_combo.setCurrentText(self.initial_quality)
+
+        self.controls_combo.setCurrentText(self.audio_manager.control_scheme)
         
-        # Connections
         self.volume_slider.valueChanged.connect(self.on_volume_changed)
         self.save_button.clicked.connect(self.accept)
         self.cancel_button.clicked.connect(self.on_cancel)
@@ -251,17 +246,57 @@ class SettingsDialog(QDialog):
             self.audio_manager.set_volume(value)
     
     def on_cancel(self):
-        # Restore initial settings
         if self.audio_manager:
             self.audio_manager.set_volume(self.initial_volume)
-            self.audio_manager.graphics_quality = self.initial_quality  # Restore quality
+            self.audio_manager.graphics_quality = self.initial_quality
         self.reject()
     
     def accept(self):
-        # Save settings when accepted
+        """Apply all settings when Save button is clicked"""
         if self.audio_manager:
+            self.audio_manager.set_volume(self.volume_slider.value())
+            
             self.audio_manager.graphics_quality = self.quality_combo.currentText()
+            
+            self.audio_manager.control_scheme = self.controls_combo.currentText()
+            
+            self.save_settings()
+        
         super().accept()
+
+    def save_settings(self):
+        """Save settings to JSON file"""
+        settings = {
+            'volume': self.volume_slider.value(),
+            'quality': self.quality_combo.currentText(),
+            'controls': self.controls_combo.currentText()
+        }
+        
+        try:
+            settings_path = os.path.join(os.path.dirname(__file__), 'settings.json')
+            with open(settings_path, 'w') as f:
+                json.dump(settings, f)
+        except Exception as e:
+            print(f"Error saving settings: {e}")
+
+    def load_settings(self):
+        """Load settings from JSON file"""
+        try:
+            settings_path = os.path.join(os.path.dirname(__file__), 'settings.json')
+            if os.path.exists(settings_path):
+                with open(settings_path) as f:
+                    settings = json.load(f)
+                    
+                    self.volume_slider.setValue(settings.get('volume', 80))
+                    self.quality_combo.setCurrentText(settings.get('quality', 'Medium'))
+                    
+                    control_scheme = settings.get('controls', 'Arrow Keys')
+                    self.controls_combo.setCurrentText(control_scheme)
+                    if self.audio_manager:
+                        self.audio_manager.control_scheme = control_scheme
+        except Exception as e:
+            print(f"Error loading settings: {e}")
+
 
 class LeaderboardDialog(QDialog):
     def __init__(self, parent=None):
@@ -280,6 +315,9 @@ class LeaderboardDialog(QDialog):
                     stop:0 #5a2a75, stop:1 #9a3a7a);
                 padding: 5px;
                 border: 1px solid #ba5a9a;
+            }
+            QTableWidget::item {
+                padding: 5px;
             }
         """)
         
@@ -344,18 +382,25 @@ class LeaderboardDialog(QDialog):
         
         for item in [rank_item, player_item, score_item]:
             item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-       
+        
         if row == 0:
             color = QColor(255, 215, 0)
+            font_weight = QFont.Weight.Bold
         elif row == 1:
             color = QColor(192, 192, 192)
+            font_weight = QFont.Weight.Bold
         elif row == 2:
             color = QColor(205, 127, 50)
+            font_weight = QFont.Weight.Bold
         else:
             color = QColor(255, 255, 255)
-            
+            font_weight = QFont.Weight.Normal
+        
         for item in [rank_item, player_item, score_item]:
             item.setForeground(color)
+            font = item.font()
+            font.setWeight(font_weight)
+            item.setFont(font)
         
         self.table.setItem(row, 0, rank_item)
         self.table.setItem(row, 1, player_item)
@@ -367,8 +412,9 @@ class MainMenu(QMainWindow):
     def __init__(self, audio_manager=None):
         super().__init__()
         self.audio_manager = audio_manager
+        self.load_settings()
         self.click_sound = os.path.join(os.path.dirname(__file__), "sounds", "click.mp3")
-        self.hover_sound = os.path.join(os.path.dirname(__file__), "sounds", "hover.mp3")  # если есть
+        self.hover_sound = os.path.join(os.path.dirname(__file__), "sounds", "hover.mp3")
         self.last_hovered_button = None
         self.setWindowTitle("Exit the Dream - Main Menu")
         self.setFixedSize(800, 600)
@@ -410,9 +456,7 @@ class MainMenu(QMainWindow):
         if os.path.exists(bg_path):
             bg = QPixmap(bg_path)
             if not bg.isNull():
-                # Apply quality settings with stronger differences
                 if quality == "Low":
-                    # Low quality: heavy pixelation
                     bg = bg.scaled(200, 150, 
                                  Qt.AspectRatioMode.KeepAspectRatioByExpanding,
                                  Qt.TransformationMode.FastTransformation)
@@ -420,7 +464,6 @@ class MainMenu(QMainWindow):
                                  Qt.AspectRatioMode.KeepAspectRatioByExpanding,
                                  Qt.TransformationMode.FastTransformation)
                 elif quality == "Medium":
-                    # Medium quality: moderate pixelation
                     bg = bg.scaled(400, 300, 
                                  Qt.AspectRatioMode.KeepAspectRatioByExpanding,
                                  Qt.TransformationMode.FastTransformation)
@@ -428,15 +471,13 @@ class MainMenu(QMainWindow):
                                  Qt.AspectRatioMode.KeepAspectRatioByExpanding,
                                  Qt.TransformationMode.SmoothTransformation)
                 elif quality == "High":
-                    # High quality: slight pixelation
                     bg = bg.scaled(600, 450, 
                                  Qt.AspectRatioMode.KeepAspectRatioByExpanding,
                                  Qt.TransformationMode.SmoothTransformation)
                     bg = bg.scaled(800, 600, 
                                  Qt.AspectRatioMode.KeepAspectRatioByExpanding,
                                  Qt.TransformationMode.SmoothTransformation)
-                else:  # Ultra
-                    # Ultra quality: no pixelation, high quality
+                else:
                     bg = bg.scaled(800, 600, 
                                  Qt.AspectRatioMode.KeepAspectRatioByExpanding,
                                  Qt.TransformationMode.SmoothTransformation)
@@ -461,9 +502,7 @@ class MainMenu(QMainWindow):
         if os.path.exists(logo_path):
             logo = QPixmap(logo_path)
             if not logo.isNull():
-                # Apply stronger quality differences to logo
                 if quality == "Low":
-                    # Low quality: heavy pixelation
                     logo = logo.scaled(100, 30, 
                                      Qt.AspectRatioMode.KeepAspectRatio,
                                      Qt.TransformationMode.FastTransformation)
@@ -471,7 +510,6 @@ class MainMenu(QMainWindow):
                                      Qt.AspectRatioMode.KeepAspectRatio,
                                      Qt.TransformationMode.FastTransformation)
                 elif quality == "Medium":
-                    # Medium quality: moderate pixelation
                     logo = logo.scaled(200, 60, 
                                      Qt.AspectRatioMode.KeepAspectRatio,
                                      Qt.TransformationMode.FastTransformation)
@@ -479,27 +517,23 @@ class MainMenu(QMainWindow):
                                      Qt.AspectRatioMode.KeepAspectRatio,
                                      Qt.TransformationMode.SmoothTransformation)
                 elif quality == "High":
-                    # High quality: slight pixelation
                     logo = logo.scaled(300, 90, 
                                      Qt.AspectRatioMode.KeepAspectRatio,
                                      Qt.TransformationMode.SmoothTransformation)
                     logo = logo.scaled(400, 120, 
                                      Qt.AspectRatioMode.KeepAspectRatio,
                                      Qt.TransformationMode.SmoothTransformation)
-                else:  # Ultra
-                    # Ultra quality: no pixelation, high quality
+                else:
                     logo = logo.scaled(400, 120, 
                                      Qt.AspectRatioMode.KeepAspectRatio,
                                      Qt.TransformationMode.SmoothTransformation)
                 
                 return logo
         
-        # If no file, generate logo
         logo = QPixmap(400, 100)
         logo.fill(Qt.GlobalColor.transparent)
         painter = QPainter(logo)
         
-        # Apply quality to generated logo
         if quality == "Low":
             painter.setFont(QFont("Minecraft", 24, QFont.Weight.Bold))
         else:
@@ -619,14 +653,12 @@ class MainMenu(QMainWindow):
     def mouseMoveEvent(self, event):
         super().mouseMoveEvent(event)
         
-        # Проверяем какая кнопка под курсором
         current_hover = None
         for btn, rect in self.button_rects.items():
             if rect.contains(event.pos()):
                 current_hover = btn
                 break
         
-        # Воспроизводим звук при наведении на новую кнопку
         if (current_hover != self.last_hovered_button and 
             current_hover is not None and 
             self.audio_manager and 
@@ -698,7 +730,6 @@ class MainMenu(QMainWindow):
         """Show options dialog"""
         dialog = SettingsDialog(self)
         if dialog.exec() == QDialog.DialogCode.Accepted:
-            # Update background when settings are saved
             self.background = self.create_background()
             self.logo = self.create_logo()
             self.update()
@@ -719,18 +750,36 @@ class MainMenu(QMainWindow):
             print(f"Error loading scores: {e}")
             self.scores = []
 
+    def load_settings(self):
+        """Load settings when menu starts"""
+        if not self.audio_manager:
+            return
+            
+        try:
+            settings_path = os.path.join(os.path.dirname(__file__), 'settings.json')
+            if os.path.exists(settings_path):
+                with open(settings_path) as f:
+                    settings = json.load(f)
+                    self.audio_manager.control_scheme = settings.get('controls', 'Arrow Keys')
+        except Exception as e:
+            print(f"Error loading settings: {e}")
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    
+
     if sys.platform == "win32":
         import ctypes
         ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
-    
+
     menu = MainMenu()
-    
+
     def handle_start(level, name):
         print(f"Starting game: level {level}, player {name}")
-    
+        game = Game()
+        game.resize(800, 600)
+        game.show()
+        menu.hide()
+
     menu.start_game_signal.connect(handle_start)
     menu.show()
     sys.exit(app.exec())
