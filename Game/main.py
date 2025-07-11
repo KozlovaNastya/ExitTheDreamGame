@@ -83,7 +83,6 @@ class Game(QMainWindow):
         if index > 0:
             self.score += (index) * self.hearts_widget.lives
 
-    # In main.py
     def save_score_to_leaderboard(self):
         path = os.path.join(os.path.dirname(__file__), "leaderboard.json")
         data = []
