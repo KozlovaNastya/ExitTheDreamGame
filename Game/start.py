@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
 import sys
 import os
-import json
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PyQt6.QtCore import QUrl
@@ -25,80 +23,61 @@ class AudioManager:
         
         self.set_volume(80)
         self.graphics_quality = "Medium"
-
         self.control_scheme = "Arrow Keys"
         
     def set_volume(self, volume):
-        """Set volume for all sounds (0-100)"""
         volume = max(0, min(100, volume)) / 100.0
         self.music_output.setVolume(volume)
         self.click_output.setVolume(volume * 1.2)
         self.hover_output.setVolume(volume * 0.8)
     
     def set_music_volume(self, volume):
-        """Set only music volume"""
         volume = max(0, min(100, volume)) / 100.0
         self.music_output.setVolume(volume)
     
     def play_music(self, file_path):
-        """Play background music"""
         if os.path.exists(file_path):
             self.music_player.setSource(QUrl.fromLocalFile(file_path))
             self.music_player.setLoops(QMediaPlayer.Loops.Infinite)
             self.music_player.play()
     
     def play_click(self):
-        """Play click sound"""
         if not self.click_player.source().isEmpty():
             self.click_player.stop()
             self.click_player.setPosition(0)
             self.click_player.play()
     
     def play_hover(self):
-        """Play hover sound"""
         if not self.hover_player.source().isEmpty():
             self.hover_player.stop()
             self.hover_player.setPosition(0)
             self.hover_player.play()
     
     def load_click_sound(self, file_path):
-        """Load click sound"""
         if os.path.exists(file_path):
             self.click_player.setSource(QUrl.fromLocalFile(file_path))
     
     def load_hover_sound(self, file_path):
-        """Load hover sound"""
         if os.path.exists(file_path):
             self.hover_player.setSource(QUrl.fromLocalFile(file_path))
 
 def handle_start(level, name, menu, audio_manager):
-    story = """
-    Oh... That dream again... 
-    I need to wake up quickly or 
-    I'll get sucked into the abyss of endless dreams.
-
-    avoid the thorns and strange platforms
-    """
-    controls = """
-    Controls:
-    - Left/Right arrows — move
-    OR
-    - WASD (you can chose it in settings)
-    - Space — jump
+    story = "Oh... That dream again...\nI need to wake up quickly or\nI'll get sucked into the abyss of endless dreams."
+    controls = """Controls:
+    - Left/Right arrows or WASD to move
+    - Space to jump
     On level2 use:
     1 - gravity down
     2 - gravity up
     On level3 use:
     3 - gravity left
-    4 - gravity right
-    """
+    4 - gravity right"""
+    
     dialog = StoryDialog(story, controls)
     dialog.exec()
     
     game = Game()
-    print("Game instance created")
     game.audio_manager = audio_manager
-    print(f"Assigned audio_manager with control_scheme: {game.audio_manager.control_scheme}")
     game.resize(800, 600)
     game.show()
     menu.hide()
@@ -116,20 +95,15 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     
     audio_manager = AudioManager()
-    
     base_path = os.path.dirname(os.path.abspath(__file__))
-    music_path = os.path.join(base_path, "sounds", "background.mp3")
-    click_path = os.path.join(base_path, "sounds", "click.mp3")
-    hover_path = os.path.join(base_path, "sounds", "hover.mp3")
     
-    audio_manager.play_music(music_path)
-    audio_manager.load_click_sound(click_path)
-    audio_manager.load_hover_sound(hover_path)
+    audio_manager.play_music(os.path.join(base_path, "sounds", "background.mp3"))
+    audio_manager.load_click_sound(os.path.join(base_path, "sounds", "click.mp3"))
+    audio_manager.load_hover_sound(os.path.join(base_path, "sounds", "hover.mp3"))
     
     menu = MainMenu(audio_manager)
     menu.current_game = None
-    
     menu.start_game_signal.connect(lambda level, name: handle_start(level, name, menu, audio_manager))
-    
     menu.show()
+    
     sys.exit(app.exec())

@@ -1,14 +1,22 @@
 ﻿# -*- coding: utf-8 -*-
-import sys
 import os
 import json
-from PyQt6.QtWidgets import (QMainWindow, QApplication, QMessageBox, 
-                            QDialog, QVBoxLayout, QLabel, QLineEdit, 
-                            QPushButton, QTableWidget, QTableWidgetItem,
-                            QComboBox, QSlider, QHBoxLayout, QWidget)
-from PyQt6.QtGui import (QPainter, QPixmap, QFont, QColor, QPen, 
-                         QBrush, QFontDatabase, QLinearGradient)
+from pathlib import Path
+from PyQt6.QtWidgets import (
+    QMainWindow, QApplication, QDialog, QVBoxLayout, 
+    QLabel, QLineEdit, QPushButton, QTableWidget, 
+    QTableWidgetItem, QComboBox, QSlider, QHBoxLayout, 
+    QWidget, QHeaderView
+)
+from PyQt6.QtGui import (
+    QPainter, QPixmap, QFont, QColor, QPen, 
+    QBrush, QFontDatabase, QLinearGradient
+)
 from PyQt6.QtCore import Qt, QRect, QTimer, pyqtSignal
+
+def get_leaderboard_path():
+    base_dir = Path(__file__).parent.parent
+    return base_dir / "leaderboard.json"
 
 DIALOG_STYLE = """
     QDialog {
@@ -67,10 +75,6 @@ class ConfirmDialog(QDialog):
         
         self.confirm_button.clicked.connect(self.accept)
         self.cancel_button.clicked.connect(self.reject)
-
-from PyQt6.QtWidgets import (QDialog, QVBoxLayout, QLabel, QSlider, 
-                            QPushButton, QComboBox, QHBoxLayout, QWidget)
-from PyQt6.QtCore import Qt, pyqtSignal
 
 class SettingsDialog(QDialog):
     def __init__(self, parent=None):
@@ -224,7 +228,6 @@ class SettingsDialog(QDialog):
         button_layout.addStretch()
         
         layout.addWidget(button_container)
-        
         self.setLayout(layout)
         
         self.initial_volume = int(self.audio_manager.music_output.volume() * 100)
@@ -233,7 +236,6 @@ class SettingsDialog(QDialog):
         self.volume_slider.setValue(self.initial_volume)
         self.volume_value.setText(str(self.initial_volume))
         self.quality_combo.setCurrentText(self.initial_quality)
-
         self.controls_combo.setCurrentText(self.audio_manager.control_scheme)
         
         self.volume_slider.valueChanged.connect(self.on_volume_changed)
@@ -252,20 +254,14 @@ class SettingsDialog(QDialog):
         self.reject()
     
     def accept(self):
-        """Apply all settings when Save button is clicked"""
         if self.audio_manager:
             self.audio_manager.set_volume(self.volume_slider.value())
-            
             self.audio_manager.graphics_quality = self.quality_combo.currentText()
-            
             self.audio_manager.control_scheme = self.controls_combo.currentText()
-            
             self.save_settings()
-        
         super().accept()
 
     def save_settings(self):
-        """Save settings to JSON file"""
         settings = {
             'volume': self.volume_slider.value(),
             'quality': self.quality_combo.currentText(),
@@ -276,62 +272,27 @@ class SettingsDialog(QDialog):
             settings_path = os.path.join(os.path.dirname(__file__), 'settings.json')
             with open(settings_path, 'w') as f:
                 json.dump(settings, f)
-        except Exception as e:
-            print(f"Error saving settings: {e}")
-
-    def load_settings(self):
-        """Load settings from JSON file"""
-        try:
-            settings_path = os.path.join(os.path.dirname(__file__), 'settings.json')
-            if os.path.exists(settings_path):
-                with open(settings_path) as f:
-                    settings = json.load(f)
-                    
-                    self.volume_slider.setValue(settings.get('volume', 80))
-                    self.quality_combo.setCurrentText(settings.get('quality', 'Medium'))
-                    
-                    control_scheme = settings.get('controls', 'Arrow Keys')
-                    self.controls_combo.setCurrentText(control_scheme)
-                    if self.audio_manager:
-                        self.audio_manager.control_scheme = control_scheme
-        except Exception as e:
-            print(f"Error loading settings: {e}")
-
+        except Exception:
+            pass
 
 class LeaderboardDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Leaderboard")
         self.setFixedSize(600, 450)
-        self.setStyleSheet(DIALOG_STYLE + """
-            QTableWidget {
-                background: rgba(40, 10, 60, 180);
-                border: 2px solid #9a3a7a;
-                gridline-color: #7a2a65;
-                font-size: 14px;
-            }
-            QHeaderView::section {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #5a2a75, stop:1 #9a3a7a);
-                padding: 5px;
-                border: 1px solid #ba5a9a;
-            }
-            QTableWidget::item {
-                padding: 5px;
-            }
-        """)
+        self.setStyleSheet(self.get_dialog_style())
         
         layout = QVBoxLayout()
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.setSpacing(15)
+        self.setLayout(layout)
         
-        title = QLabel("TOP 10")
+        title = QLabel("TOP DREAMERS")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title.setStyleSheet("""
             QLabel {
                 color: #ff66cc;
                 font-size: 24px;
                 font-weight: bold;
+                margin-bottom: 15px;
             }
         """)
         layout.addWidget(title)
@@ -339,72 +300,126 @@ class LeaderboardDialog(QDialog):
         self.table = QTableWidget()
         self.table.setColumnCount(3)
         self.table.setHorizontalHeaderLabels(["Rank", "Player", "Score"])
-        self.table.horizontalHeader().setStretchLastSection(True)
+        self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         self.table.verticalHeader().setVisible(False)
         self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.table.setSelectionMode(QTableWidget.SelectionMode.NoSelection)
-        
-        self.load_leaderboard()
+        self.table.setStyleSheet(self.get_table_style())
         layout.addWidget(self.table)
         
-        self.close_button = QPushButton("Close")
-        self.close_button.setFixedSize(120, 35)
-        layout.addWidget(self.close_button, alignment=Qt.AlignmentFlag.AlignCenter)
-        self.setLayout(layout)
-        self.close_button.clicked.connect(self.close)
-    
+        close_btn = QPushButton("Close")
+        close_btn.setFixedSize(120, 40)
+        close_btn.setStyleSheet(self.get_button_style())
+        close_btn.clicked.connect(self.close)
+        layout.addWidget(close_btn, alignment=Qt.AlignmentFlag.AlignCenter)
+        
+        self.load_leaderboard()
+
     def load_leaderboard(self):
         try:
-            base_path = os.path.dirname(os.path.abspath(__file__))
-            leaderboard_path = os.path.join(base_path, "leaderboard.json")
+            leaderboard_path = get_leaderboard_path()
             
-            if os.path.exists(leaderboard_path):
-                with open(leaderboard_path, 'r', encoding='utf-8') as f:
-                    data = json.load(f)
+            if not leaderboard_path.exists():
+                self.table.setRowCount(0)
+                return
+
+            with open(leaderboard_path, 'r', encoding='utf-8') as f:
+                scores = json.load(f)
+
+            self.table.setRowCount(len(scores))
+            for row, entry in enumerate(scores):
+                self.add_table_row(row, entry)
                 
-                data.sort(key=lambda x: x['score'], reverse=True)
-                top_10 = data[:10]
-                
-                self.table.setRowCount(len(top_10))
-                for row, entry in enumerate(top_10):
-                    self.add_table_row(row, entry)
-                
-                self.table.setColumnWidth(0, 80)
-                self.table.setColumnWidth(1, 250)
-        except Exception as e:
-            print(f"Error loading leaderboard: {e}")
-    
+        except Exception:
+            self.table.setRowCount(0)
+
     def add_table_row(self, row, entry):
-        """Helper method to add a row to the table with proper formatting"""
-        rank_item = QTableWidgetItem(str(row+1))
-        player_item = QTableWidgetItem(entry['player'])
-        score_item = QTableWidgetItem(str(entry['score']))
-        
+        rank_item = QTableWidgetItem(str(row + 1))
+        player_item = QTableWidgetItem(entry.get('player', 'Unknown'))
+        score = min(entry.get('score', 0), 15)
+        score_item = QTableWidgetItem(str(score))
+    
+        actual_position = row + 1
+    
+        if actual_position == 1:
+            text_color = QColor(40, 40, 40)
+            bg_color = QColor(255, 200, 0)
+        elif actual_position == 2:
+            text_color = QColor(40, 40, 40)
+            bg_color = QColor(220, 220, 220)
+        elif actual_position == 3:
+            text_color = QColor(255, 255, 255)
+            bg_color = QColor(200, 120, 50)
+        elif score == 15:
+            text_color = QColor(255, 255, 255)
+            bg_color = QColor(0, 150, 0)
+        else:
+            text_color = QColor(230, 230, 255)
+            bg_color = QColor(70, 30, 90)
+    
+        font_size = 12 if actual_position <= 3 else 10
+        font = QFont('Arial', font_size, QFont.Weight.Bold)
+    
         for item in [rank_item, player_item, score_item]:
             item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-        
-        if row == 0:
-            color = QColor(255, 215, 0)
-            font_weight = QFont.Weight.Bold
-        elif row == 1:
-            color = QColor(192, 192, 192)
-            font_weight = QFont.Weight.Bold
-        elif row == 2:
-            color = QColor(205, 127, 50)
-            font_weight = QFont.Weight.Bold
-        else:
-            color = QColor(255, 255, 255)
-            font_weight = QFont.Weight.Normal
-        
-        for item in [rank_item, player_item, score_item]:
-            item.setForeground(color)
-            font = item.font()
-            font.setWeight(font_weight)
+            item.setForeground(text_color)
+            item.setBackground(bg_color)
             item.setFont(font)
-        
+            item.setFlags(Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable)
+    
         self.table.setItem(row, 0, rank_item)
         self.table.setItem(row, 1, player_item)
         self.table.setItem(row, 2, score_item)
+        self.table.setRowHeight(row, 40)
+
+    def get_dialog_style(self):
+        return """
+            QDialog {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                    stop:0 #2a0845, stop:1 #7a1a5a);
+                color: #ffffff;
+                font-family: 'Minecraft';
+                border: 2px solid #ba5a9a;
+                border-radius: 10px;
+            }
+        """
+    
+    def get_table_style(self):
+        return """
+            QTableWidget {
+                background: rgba(40, 10, 60, 180);
+                border: 2px solid #9a3a7a;
+                gridline-color: #7a2a65;
+                font-size: 14px;
+                color: white;
+            }
+            QHeaderView::section {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #5a2a75, stop:1 #9a3a7a);
+                padding: 5px;
+                border: 1px solid #ba5a9a;
+                color: white;
+                font-weight: bold;
+            }
+        """
+    
+    def get_button_style(self):
+        return """
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #5a2a75, stop:1 #9a3a7a);
+                color: white;
+                border: 2px solid #ba5a9a;
+                border-radius: 5px;
+                padding: 5px 10px;
+                font-family: 'Minecraft';
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #6a3a85, stop:1 #aa4a8a);
+                border: 2px solid #da7aba;
+            }
+        """
 
 class MainMenu(QMainWindow):
     start_game_signal = pyqtSignal(int, str)
@@ -415,7 +430,6 @@ class MainMenu(QMainWindow):
         self.load_settings()
         self.click_sound = os.path.join(os.path.dirname(__file__), "sounds", "click.mp3")
         self.hover_sound = os.path.join(os.path.dirname(__file__), "sounds", "hover.mp3")
-        self.last_hovered_button = None
         self.setWindowTitle("Exit the Dream - Main Menu")
         self.setFixedSize(800, 600)
         
@@ -432,9 +446,22 @@ class MainMenu(QMainWindow):
         
         self.hovered_button = None
         self.pressed_button = None
-    
+        
+        self.ensure_leaderboard_file()
+
+    def ensure_leaderboard_file(self):
+        leaderboard_path = get_leaderboard_path()
+        if not leaderboard_path.exists():
+            demo_data = [
+                {"player": "Dream Champion", "score": 15},
+                {"player": "Silver Runner", "score": 12},
+                {"player": "Bronze Player", "score": 9},
+                {"player": "New Challenger", "score": 6}
+            ]
+            with open(leaderboard_path, 'w', encoding='utf-8') as f:
+                json.dump(demo_data, f, indent=4)
+
     def init_resources(self):
-        """Initialize all graphical resources"""
         self.base_path = os.path.dirname(os.path.abspath(__file__))
         self.assets_path = os.path.normpath(os.path.join(self.base_path, "..", "assets"))
         
@@ -443,48 +470,29 @@ class MainMenu(QMainWindow):
             QFontDatabase.addApplicationFont(font_path)
         
         self.background = self.create_background()
-        
         self.logo = self.create_logo()
-        
         self.init_buttons()
     
     def create_background(self):
-        """Create background image, either from file or gradient"""
         quality = self.audio_manager.graphics_quality if self.audio_manager else "Medium"
-        
         bg_path = os.path.join(self.assets_path, "background", "level0.png")
+        
         if os.path.exists(bg_path):
             bg = QPixmap(bg_path)
             if not bg.isNull():
                 if quality == "Low":
-                    bg = bg.scaled(200, 150, 
-                                 Qt.AspectRatioMode.KeepAspectRatioByExpanding,
-                                 Qt.TransformationMode.FastTransformation)
-                    bg = bg.scaled(800, 600, 
-                                 Qt.AspectRatioMode.KeepAspectRatioByExpanding,
-                                 Qt.TransformationMode.FastTransformation)
+                    bg = bg.scaled(200, 150, Qt.AspectRatioMode.KeepAspectRatioByExpanding, Qt.TransformationMode.FastTransformation)
+                    bg = bg.scaled(800, 600, Qt.AspectRatioMode.KeepAspectRatioByExpanding, Qt.TransformationMode.FastTransformation)
                 elif quality == "Medium":
-                    bg = bg.scaled(400, 300, 
-                                 Qt.AspectRatioMode.KeepAspectRatioByExpanding,
-                                 Qt.TransformationMode.FastTransformation)
-                    bg = bg.scaled(800, 600, 
-                                 Qt.AspectRatioMode.KeepAspectRatioByExpanding,
-                                 Qt.TransformationMode.SmoothTransformation)
+                    bg = bg.scaled(400, 300, Qt.AspectRatioMode.KeepAspectRatioByExpanding, Qt.TransformationMode.FastTransformation)
+                    bg = bg.scaled(800, 600, Qt.AspectRatioMode.KeepAspectRatioByExpanding, Qt.TransformationMode.SmoothTransformation)
                 elif quality == "High":
-                    bg = bg.scaled(600, 450, 
-                                 Qt.AspectRatioMode.KeepAspectRatioByExpanding,
-                                 Qt.TransformationMode.SmoothTransformation)
-                    bg = bg.scaled(800, 600, 
-                                 Qt.AspectRatioMode.KeepAspectRatioByExpanding,
-                                 Qt.TransformationMode.SmoothTransformation)
+                    bg = bg.scaled(600, 450, Qt.AspectRatioMode.KeepAspectRatioByExpanding, Qt.TransformationMode.SmoothTransformation)
+                    bg = bg.scaled(800, 600, Qt.AspectRatioMode.KeepAspectRatioByExpanding, Qt.TransformationMode.SmoothTransformation)
                 else:
-                    bg = bg.scaled(800, 600, 
-                                 Qt.AspectRatioMode.KeepAspectRatioByExpanding,
-                                 Qt.TransformationMode.SmoothTransformation)
-                
+                    bg = bg.scaled(800, 600, Qt.AspectRatioMode.KeepAspectRatioByExpanding, Qt.TransformationMode.SmoothTransformation)
                 return bg.copy((bg.width()-800)//2, (bg.height()-600)//2, 800, 600)
         
-        # If no file, create gradient background
         bg = QPixmap(800, 600)
         painter = QPainter(bg)
         gradient = QLinearGradient(0, 0, 800, 600)
@@ -495,60 +503,39 @@ class MainMenu(QMainWindow):
         return bg
     
     def create_logo(self):
-        """Create logo image, either from file or generated"""
         quality = self.audio_manager.graphics_quality if self.audio_manager else "Medium"
-        
         logo_path = os.path.join(self.assets_path, "for game", "gameOver.png")
+        
         if os.path.exists(logo_path):
             logo = QPixmap(logo_path)
             if not logo.isNull():
                 if quality == "Low":
-                    logo = logo.scaled(100, 30, 
-                                     Qt.AspectRatioMode.KeepAspectRatio,
-                                     Qt.TransformationMode.FastTransformation)
-                    logo = logo.scaled(400, 120, 
-                                     Qt.AspectRatioMode.KeepAspectRatio,
-                                     Qt.TransformationMode.FastTransformation)
+                    logo = logo.scaled(100, 30, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.FastTransformation)
+                    logo = logo.scaled(400, 120, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.FastTransformation)
                 elif quality == "Medium":
-                    logo = logo.scaled(200, 60, 
-                                     Qt.AspectRatioMode.KeepAspectRatio,
-                                     Qt.TransformationMode.FastTransformation)
-                    logo = logo.scaled(400, 120, 
-                                     Qt.AspectRatioMode.KeepAspectRatio,
-                                     Qt.TransformationMode.SmoothTransformation)
+                    logo = logo.scaled(200, 60, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.FastTransformation)
+                    logo = logo.scaled(400, 120, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
                 elif quality == "High":
-                    logo = logo.scaled(300, 90, 
-                                     Qt.AspectRatioMode.KeepAspectRatio,
-                                     Qt.TransformationMode.SmoothTransformation)
-                    logo = logo.scaled(400, 120, 
-                                     Qt.AspectRatioMode.KeepAspectRatio,
-                                     Qt.TransformationMode.SmoothTransformation)
+                    logo = logo.scaled(300, 90, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+                    logo = logo.scaled(400, 120, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
                 else:
-                    logo = logo.scaled(400, 120, 
-                                     Qt.AspectRatioMode.KeepAspectRatio,
-                                     Qt.TransformationMode.SmoothTransformation)
-                
+                    logo = logo.scaled(400, 120, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
                 return logo
         
         logo = QPixmap(400, 100)
         logo.fill(Qt.GlobalColor.transparent)
         painter = QPainter(logo)
         
-        if quality == "Low":
-            painter.setFont(QFont("Minecraft", 24, QFont.Weight.Bold))
-        else:
-            painter.setFont(QFont("Minecraft", 32, QFont.Weight.Bold))
-        
+        font_size = 24 if quality == "Low" else 32
+        painter.setFont(QFont("Minecraft", font_size, QFont.Weight.Bold))
         painter.setPen(QColor(0, 0, 0, 150))
         painter.drawText(logo.rect().translated(2, 2), Qt.AlignmentFlag.AlignCenter, "EXIT THE DREAM")
-        
         painter.setPen(QColor(255, 102, 204))
         painter.drawText(logo.rect(), Qt.AlignmentFlag.AlignCenter, "EXIT THE DREAM")
         painter.end()
         return logo
     
     def init_buttons(self):
-        """Initialize menu buttons"""
         self.button_texts = {
             "start": "START",
             "restart": "RESTART",
@@ -586,7 +573,6 @@ class MainMenu(QMainWindow):
             }
     
     def create_button_pixmap(self, btn_key, pressed=False):
-        """Create a button pixmap in specified state"""
         btn_width, btn_height = 220, 45
         pixmap = QPixmap(btn_width, btn_height)
         pixmap.fill(Qt.GlobalColor.transparent)
@@ -595,11 +581,9 @@ class MainMenu(QMainWindow):
         self.draw_button(painter, QRect(0, 0, btn_width, btn_height), 
                         self.button_texts[btn_key], pressed)
         painter.end()
-        
         return pixmap
     
     def draw_button(self, painter, rect, text, pressed=False):
-        """Draw a button with the specified state"""
         if pressed:
             rect = rect.translated(0, 2)
         
@@ -622,9 +606,7 @@ class MainMenu(QMainWindow):
         painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, text)
     
     def paintEvent(self, event):
-        """Main painting event"""
         painter = QPainter(self)
-        
         painter.drawPixmap(0, 0, self.background)
         
         if not self.logo.isNull():
@@ -634,7 +616,6 @@ class MainMenu(QMainWindow):
         self.draw_buttons(painter)
     
     def draw_buttons(self, painter):
-        """Draw all menu buttons"""
         cursor_pos = self.mapFromGlobal(self.cursor().pos())
         
         for btn, rect in self.button_rects.items():
@@ -652,8 +633,8 @@ class MainMenu(QMainWindow):
 
     def mouseMoveEvent(self, event):
         super().mouseMoveEvent(event)
-        
         current_hover = None
+        
         for btn, rect in self.button_rects.items():
             if rect.contains(event.pos()):
                 current_hover = btn
@@ -663,7 +644,6 @@ class MainMenu(QMainWindow):
             current_hover is not None and 
             self.audio_manager and 
             os.path.exists(self.hover_sound)):
-            
             self.audio_manager.play_sound(self.hover_sound)
         
         self.last_hovered_button = current_hover
@@ -677,7 +657,6 @@ class MainMenu(QMainWindow):
         super().mousePressEvent(event)
     
     def mouseReleaseEvent(self, event):
-        """Handle mouse release and button clicks"""
         if self.pressed_button:
             btn = self.pressed_button
             if self.button_rects[btn].contains(event.pos()):
@@ -702,11 +681,9 @@ class MainMenu(QMainWindow):
         handlers.get(button, lambda: None)()
 
     def start_game(self):
-        """Start the game with current level"""
         self.start_game_signal.emit(self.current_level, self.player_name)
     
     def confirm_restart(self):
-        """Show restart confirmation dialog"""
         dialog = ConfirmDialog(
             self,
             "Are you sure you want to restart?\nAll progress will be lost.",
@@ -717,7 +694,6 @@ class MainMenu(QMainWindow):
             self.start_game_signal.emit(1, self.player_name)
     
     def confirm_exit(self):
-        """Show exit confirmation dialog"""
         dialog = ConfirmDialog(
             self,
             "Are you sure you want to exit the game?",
@@ -727,7 +703,6 @@ class MainMenu(QMainWindow):
             QApplication.quit()
     
     def show_options(self):
-        """Show options dialog"""
         dialog = SettingsDialog(self)
         if dialog.exec() == QDialog.DialogCode.Accepted:
             self.background = self.create_background()
@@ -735,23 +710,19 @@ class MainMenu(QMainWindow):
             self.update()
     
     def show_leaderboard(self):
-        """Show leaderboard dialog"""
         dialog = LeaderboardDialog(self)
         dialog.exec()
     
     def load_scores(self):
-        """Load scores from leaderboard file"""
         try:
             leaderboard_path = os.path.join(self.base_path, "leaderboard.json")
             if os.path.exists(leaderboard_path):
                 with open(leaderboard_path, 'r', encoding='utf-8') as f:
                     self.scores = json.load(f)
-        except Exception as e:
-            print(f"Error loading scores: {e}")
+        except Exception:
             self.scores = []
 
     def load_settings(self):
-        """Load settings when menu starts"""
         if not self.audio_manager:
             return
             
@@ -761,8 +732,8 @@ class MainMenu(QMainWindow):
                 with open(settings_path) as f:
                     settings = json.load(f)
                     self.audio_manager.control_scheme = settings.get('controls', 'Arrow Keys')
-        except Exception as e:
-            print(f"Error loading settings: {e}")
+        except Exception:
+            pass
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
@@ -774,7 +745,6 @@ if __name__ == "__main__":
     menu = MainMenu()
 
     def handle_start(level, name):
-        print(f"Starting game: level {level}, player {name}")
         game = Game()
         game.resize(800, 600)
         game.show()
