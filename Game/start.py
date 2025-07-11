@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import sys
 import os
 import json
@@ -6,26 +7,24 @@ from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PyQt6.QtCore import QUrl
 from gam.main_menu import MainMenu
 from main import Game
+from gam.levels.intro import StoryDialog
 
 class AudioManager:
     def __init__(self):
-        # Background music
         self.music_player = QMediaPlayer()
         self.music_output = QAudioOutput()
         self.music_player.setAudioOutput(self.music_output)
         
-        # Click sound
         self.click_player = QMediaPlayer()
         self.click_output = QAudioOutput()
         self.click_player.setAudioOutput(self.click_output)
         
-        # Hover sound
         self.hover_player = QMediaPlayer()
         self.hover_output = QAudioOutput()
         self.hover_player.setAudioOutput(self.hover_output)
         
-        self.set_volume(80)  # Default volume 80%
-        self.graphics_quality = "Medium"  # Default graphics quality
+        self.set_volume(80)
+        self.graphics_quality = "Medium"
 
         self.control_scheme = "Arrow Keys"
         
@@ -33,8 +32,8 @@ class AudioManager:
         """Set volume for all sounds (0-100)"""
         volume = max(0, min(100, volume)) / 100.0
         self.music_output.setVolume(volume)
-        self.click_output.setVolume(volume * 1.2)  # Click slightly louder
-        self.hover_output.setVolume(volume * 0.8)  # Hover slightly quieter
+        self.click_output.setVolume(volume * 1.2)
+        self.hover_output.setVolume(volume * 0.8)
     
     def set_music_volume(self, volume):
         """Set only music volume"""
@@ -72,13 +71,52 @@ class AudioManager:
         if os.path.exists(file_path):
             self.hover_player.setSource(QUrl.fromLocalFile(file_path))
 
+def handle_start(level, name, menu, audio_manager):
+    story = """
+    Oh... That dream again... 
+    I need to wake up quickly or 
+    I'll get sucked into the abyss of endless dreams.
+
+    avoid the thorns and strange platforms
+    """
+    controls = """
+    Controls:
+    - Left/Right arrows — move
+    OR
+    - WASD (you can chose it in settings)
+    - Space — jump
+    On level2 use:
+    1 - gravity down
+    2 - gravity up
+    On level3 use:
+    3 - gravity left
+    4 - gravity right
+    """
+    dialog = StoryDialog(story, controls)
+    dialog.exec()
+    
+    game = Game()
+    print("Game instance created")
+    game.audio_manager = audio_manager
+    print(f"Assigned audio_manager with control_scheme: {game.audio_manager.control_scheme}")
+    game.resize(800, 600)
+    game.show()
+    menu.hide()
+    menu.current_game = game
+    game.back_to_menu_signal.connect(lambda: handle_back_to_menu(menu))
+
+def handle_back_to_menu(menu):
+    if menu.current_game:
+        menu.current_game.hide()
+        menu.current_game.deleteLater()
+        menu.current_game = None
+    menu.show()
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     
-    # Initialize audio
     audio_manager = AudioManager()
     
-    # Load sounds
     base_path = os.path.dirname(os.path.abspath(__file__))
     music_path = os.path.join(base_path, "sounds", "background.mp3")
     click_path = os.path.join(base_path, "sounds", "click.mp3")
@@ -88,28 +126,10 @@ if __name__ == "__main__":
     audio_manager.load_click_sound(click_path)
     audio_manager.load_hover_sound(hover_path)
     
-    # Create menu
     menu = MainMenu(audio_manager)
     menu.current_game = None
     
-    def handle_start(level, name):
-        game = Game()
-        print("Game instance created")
-        game.audio_manager = audio_manager
-        print(f"Assigned audio_manager with control_scheme: {game.audio_manager.control_scheme}")
-        game.resize(800, 600)
-        game.show()
-        menu.hide()
-        menu.current_game = game
-        game.back_to_menu_signal.connect(handle_back_to_menu)
-
-    def handle_back_to_menu():
-        if menu.current_game:
-            menu.current_game.hide()
-            menu.current_game.deleteLater()
-            menu.current_game = None
-        menu.show()
-
-    menu.start_game_signal.connect(handle_start)
+    menu.start_game_signal.connect(lambda level, name: handle_start(level, name, menu, audio_manager))
+    
     menu.show()
     sys.exit(app.exec())

@@ -7,7 +7,7 @@ from PyQt6.QtWidgets import (
     QWidget,
     QGridLayout,
     QDialog,
-    QInputDialog  # Add this import
+    QInputDialog
 )
 from PyQt6.QtCore import Qt, pyqtSignal
 from gam.levels.levels import LevelOne, LevelTwo, LevelThree, LevelFour, LevelFive
@@ -23,7 +23,7 @@ class Game(QMainWindow):
         self.levels = [LevelOne, LevelTwo, LevelThree, LevelFour, LevelFive]
         self.current_level_index = 0
         self.player_name = "Player"
-        self.score = 0  # Add score tracking
+        self.score = 0
 
         self.container = QWidget()
         self.setCentralWidget(self.container)
@@ -49,10 +49,8 @@ class Game(QMainWindow):
             self.level_widget = None
             
         if index >= len(self.levels): 
-            # Calculate final score (1 point per level multiplied by remaining lives)
             self.score += (index) * self.hearts_widget.lives
             
-            # Show name input dialog
             name, ok = QInputDialog.getText(
                 self, 
                 "Game Completed", 
@@ -63,7 +61,6 @@ class Game(QMainWindow):
             if ok and name:
                 self.player_name = name.strip()
             
-            # Save score to leaderboard
             self.save_score_to_leaderboard()
             
             dialog = GameCompletedDialog(self)
@@ -86,16 +83,16 @@ class Game(QMainWindow):
         if index > 0:
             self.score += (index) * self.hearts_widget.lives
 
-# In main.py
-def save_score_to_leaderboard(self):
-    path = os.path.join(os.path.dirname(__file__), "leaderboard.json")
-    data = []
-    if os.path.exists(path):
-        with open(path, 'r') as f:
-            data = json.load(f)
-    data.append({"player": self.player_name, "score": self.score})
-    with open(path, 'w') as f:
-        json.dump(data, f)
+    # In main.py
+    def save_score_to_leaderboard(self):
+        path = os.path.join(os.path.dirname(__file__), "leaderboard.json")
+        data = []
+        if os.path.exists(path):
+            with open(path, 'r') as f:
+                data = json.load(f)
+        data.append({"player": self.player_name, "score": self.score})
+        with open(path, 'w') as f:
+            json.dump(data, f)
 
     def load_next_level(self):
         self.current_level_index += 1
@@ -112,7 +109,11 @@ def save_score_to_leaderboard(self):
             if result == QDialog.DialogCode.Accepted:
                 self.back_to_menu_signal.emit()
 
-            return
+                return
 
         self.load_level(self.current_level_index)
+
+    def set_audio_manager(self, audio_manager):
+        self.audio_manager = audio_manager
+        print(f"Audio manager set in game: {audio_manager.control_scheme}")
 
