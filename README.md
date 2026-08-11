@@ -90,8 +90,8 @@ The player has 3 lives for the entire game. After losing them all, the game rest
 - Team collaboration with Git, structured project architecture
 
 ## Game ScreenShots
-![Menu](screenshots/Menu.png)
-![Settings](screenshots/Settings.png)
-![Level1](screenshots/Level1.png)
-![GameOver](screenshots/GameOver.png)
-![Rank](screenshots/Rank.png)
+<img src="screenshots/Menu.png" alt="Menu" width="600">
+<img src="screenshots/Settings.png" alt="Settings" width="600">
+<img src="screenshots/Level1.png" alt="Level1" width="600">
+<img src="screenshots/GameOver.png" alt="GameOver" width="600">
+<img src="screenshots/Rank.png" alt="Rank" width="600">
