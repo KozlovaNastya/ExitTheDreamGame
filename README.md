@@ -88,3 +88,10 @@ The player has 3 lives for the entire game. After losing them all, the game rest
 - Customizable interface and controls
 - Progress saving and leaderboard
 - Team collaboration with Git, structured project architecture
+
+## Game ScreenShots
+![Menu](screenshots/Menu.png)
+![Settings](screenshots/Settings.png)
+![Level1](screenshots/Level1.png)
+![GameOver](screenshots/GameOver.png)
+![Rank](screenshots/Rank.png)
